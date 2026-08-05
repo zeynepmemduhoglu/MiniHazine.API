@@ -18,7 +18,7 @@ namespace MiniHazine.API.Entities
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			base.OnModelCreating(modelBuilder);
+			base.OnModelCreating(modelBuilder); 
 
 			modelBuilder.Entity<Currency>().HasData(
 				new Currency { Id = 1, Code = "TRY", Name = "Türk Lirası" },
