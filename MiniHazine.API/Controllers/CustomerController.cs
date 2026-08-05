@@ -22,7 +22,6 @@ namespace MiniHazine.API.Controllers
 
 
 
-
 			return await _context.Customers.ToListAsync();
 		}
 
