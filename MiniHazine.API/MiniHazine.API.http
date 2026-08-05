@@ -1,0 +1,6 @@
+@MiniHazine.API_HostAddress = http://localhost:5192
+
+GET {{MiniHazine.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
