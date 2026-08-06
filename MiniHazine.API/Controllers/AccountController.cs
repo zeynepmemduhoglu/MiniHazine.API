@@ -15,7 +15,7 @@ namespace MiniHazine.API.Controllers
 			_context = context;
 		}
 
-		
+
 		[HttpGet("customer/{customerId}")]
 		public async Task<IActionResult> GetAccountsByCustomer(int customerId)
 		{
@@ -26,30 +26,31 @@ namespace MiniHazine.API.Controllers
 			return Ok(accounts);
 		}
 
-		
+
 		[HttpPost]
 		public async Task<IActionResult> CreateAccount([FromBody] Account account)
 		{
-			
+
 			var customerExists = await _context.Customers.AnyAsync(c => c.Id == account.CustomerId);
 			if (!customerExists)
 			{
 				return BadRequest("Hata: Belirtilen müşteri sistemde bulunamadı!");
 			}
 
-			
+
 			var currencyExists = await _context.Currencies.AnyAsync(c => c.Id == account.CurrencyId);
 			if (!currencyExists)
 			{
 				return BadRequest("Hata: Geçersiz para birimi!");
 			}
 
-			
+
 			account.AccountNumber = "ACC-" + new Random().Next(100000, 999999);
 			account.CreatedDate = DateTime.UtcNow;
 
 			_context.Accounts.Add(account);
-			await _context.SaveChangesAsync(); 
+			await _context.SaveChangesAsync();
+
 
 			return Ok(account);
 		}
