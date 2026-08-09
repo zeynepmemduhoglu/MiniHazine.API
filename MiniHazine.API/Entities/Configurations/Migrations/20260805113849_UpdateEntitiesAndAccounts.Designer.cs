@@ -7,13 +7,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniHazine.API.Entities;
 
+
 #nullable disable
 
 namespace MiniHazine.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260804120810_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260805113849_UpdateEntitiesAndAccounts")]
+    partial class UpdateEntitiesAndAccounts
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -39,20 +40,16 @@ namespace MiniHazine.API.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CurrencyId");
-
-                    b.HasIndex("CustomerId");
 
                     b.ToTable("Accounts");
                 });
@@ -76,6 +73,26 @@ namespace MiniHazine.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Currencies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "TRY",
+                            Name = "Türk Lirası"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "USD",
+                            Name = "Amerikan Doları"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "EUR",
+                            Name = "Euro"
+                        });
                 });
 
             modelBuilder.Entity("MiniHazine.API.Entities.CurrencyTransaction", b =>
@@ -162,18 +179,17 @@ namespace MiniHazine.API.Migrations
                     b.Property<decimal>("BuyingRate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("CurrencyId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Pair")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("SellingRate")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CurrencyId");
 
                     b.ToTable("ExchangeRates");
                 });
@@ -203,25 +219,6 @@ namespace MiniHazine.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("MiniHazine.API.Entities.Account", b =>
-                {
-                    b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
-                        .WithMany("Accounts")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MiniHazine.API.Entities.Customer", "Customer")
-                        .WithMany("Accounts")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Currency");
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("MiniHazine.API.Entities.CurrencyTransaction", b =>
                 {
                     b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
@@ -239,29 +236,6 @@ namespace MiniHazine.API.Migrations
                     b.Navigation("Currency");
 
                     b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("MiniHazine.API.Entities.ExchangeRate", b =>
-                {
-                    b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
-                        .WithMany("ExchangeRates")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Currency");
-                });
-
-            modelBuilder.Entity("MiniHazine.API.Entities.Currency", b =>
-                {
-                    b.Navigation("Accounts");
-
-                    b.Navigation("ExchangeRates");
-                });
-
-            modelBuilder.Entity("MiniHazine.API.Entities.Customer", b =>
-                {
-                    b.Navigation("Accounts");
                 });
 #pragma warning restore 612, 618
         }

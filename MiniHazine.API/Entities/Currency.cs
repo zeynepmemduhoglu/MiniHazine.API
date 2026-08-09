@@ -1,6 +1,4 @@
-﻿using MiniHazine.API.Entities;
-
-namespace MiniHazine.API.Entities
+﻿namespace MiniHazine.API.Entities
 {
 	public class Currency
 	{

@@ -20,7 +20,7 @@ namespace MiniHazine.API.Controllers
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<Currency>>> GetCurrencies()
 		{
-			return await _context.Currencies.ToListAsync();
+			return await _context.Currencies.ToListAsync ();
 		}
 	}
 }
