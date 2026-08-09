@@ -14,7 +14,7 @@ namespace MiniHazine.API.Controllers
 		{
 			_context = context;
 		}
-		
+
 		[HttpGet]
 		public async Task<IActionResult> GetExchangeRates()
 		{
@@ -22,11 +22,11 @@ namespace MiniHazine.API.Controllers
 			return Ok(rates);
 		}
 
-		
 		[HttpPost]
 		public async Task<IActionResult> CreateExchangeRate([FromBody] ExchangeRate exchangeRate)
 		{
-			exchangeRate.UpdatedDate = DateTime.UtcNow;
+			
+			exchangeRate.LastUpdated = DateTime.UtcNow;
 
 			_context.ExchangeRates.Add(exchangeRate);
 			await _context.SaveChangesAsync();

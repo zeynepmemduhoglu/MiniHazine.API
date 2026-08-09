@@ -12,7 +12,6 @@ namespace MiniHazine.API.Services
 			_context = context;
 		}
 
-		
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(CurrencyTransactionRequest request)
 		{
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
@@ -21,13 +20,19 @@ namespace MiniHazine.API.Services
 				return (false, "Hata: Belirtilen müşteri veya hesap bulunamadı!", null);
 			}
 
-			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.CurrencyId == request.CurrencyId);
+			var currency = await _context.Currencies.FindAsync(request.CurrencyId);
+			if (currency == null)
+			{
+				return (false, "Hata: Geçersiz para birimi!", null);
+			}
+
+			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.Pair.Contains(currency.Code));
 			if (exchangeRate == null)
 			{
 				return (false, "Hata: Bu para birimi için geçerli kur bulunamadı!", null);
 			}
 
-			decimal totalCost = request.Amount * exchangeRate.BuyRate;
+			decimal totalCost = request.Amount * exchangeRate.BuyingRate;
 			account.Balance += request.Amount;
 
 			var transaction = new CurrencyTransaction
@@ -36,7 +41,7 @@ namespace MiniHazine.API.Services
 				AccountId = request.AccountId,
 				CurrencyId = request.CurrencyId,
 				Amount = request.Amount,
-				TotalRate = exchangeRate.BuyRate,
+				TotalRate = exchangeRate.BuyingRate,
 				TransactionType = "BUY",
 				TransactionDate = DateTime.UtcNow
 			};
@@ -47,7 +52,6 @@ namespace MiniHazine.API.Services
 			return (true, "Döviz alış işlemi başarıyla gerçekleştirildi.", transaction);
 		}
 
-	
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(CurrencyTransactionRequest request)
 		{
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
@@ -58,10 +62,16 @@ namespace MiniHazine.API.Services
 
 			if (account.Balance < request.Amount)
 			{
-				return (false, "Hata: Hesabınızda bu işlemi yapacak yeterli bakiye bulunmamaktadır!", null);
+				return (false, "Hata: Hesabınızda bu işlemi yapacak yeterli bakiye bulunamadı!", null);
 			}
 
-			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.CurrencyId == request.CurrencyId);
+			var currency = await _context.Currencies.FindAsync(request.CurrencyId);
+			if (currency == null)
+			{
+				return (false, "Hata: Geçersiz para birimi!", null);
+			}
+
+			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.Pair.Contains(currency.Code));
 			if (exchangeRate == null)
 			{
 				return (false, "Hata: Bu para birimi için geçerli kur bulunamadı!", null);
@@ -75,7 +85,7 @@ namespace MiniHazine.API.Services
 				AccountId = request.AccountId,
 				CurrencyId = request.CurrencyId,
 				Amount = request.Amount,
-				TotalRate = exchangeRate.SellRate,
+				TotalRate = exchangeRate.SellingRate,
 				TransactionType = "SELL",
 				TransactionDate = DateTime.UtcNow
 			};

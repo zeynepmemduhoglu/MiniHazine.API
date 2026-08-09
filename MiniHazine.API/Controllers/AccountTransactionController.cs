@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MiniHazine.API.DTOs;
 using MiniHazine.API.Services;
 
 namespace MiniHazine.API.Controllers
@@ -10,10 +9,17 @@ namespace MiniHazine.API.Controllers
 	{
 		private readonly TransactionService _transactionService;
 
-
 		public AccountTransactionController(TransactionService transactionService)
 		{
 			_transactionService = transactionService;
+		}
+
+		
+		[HttpGet]
+		public IActionResult GetTransactions()
+		{
+			
+			return Ok("Hesap hareketleri servisi aktif.");
 		}
 	}
 }

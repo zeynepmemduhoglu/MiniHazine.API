@@ -1,44 +1,41 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MiniHazine.API.DTOs;
 using MiniHazine.API.Entities;
 
-namespace MiniHazine.API.Controllers
+namespace MiniHazine.API.Services
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class AccountController : ControllerBase
+	public class AccountService
 	{
 		private readonly AppDbContext _context;
 
-		public AccountController(AppDbContext context)
+		public AccountService(AppDbContext context)
 		{
 			_context = context;
 		}
 
-		[HttpGet("customer/{customerId}")]
-		public async Task<IActionResult> GetAccountsByCustomer(int customerId)
+		// Belirli bir müşterinin hesaplarını getirme iş kuralı
+		public async Task<IEnumerable<Account>> GetAccountsByCustomerAsync(int customerId)
 		{
-			var accounts = await _context.Accounts
+			return await _context.Accounts
 				.Where(a => a.CustomerId == customerId)
 				.ToListAsync();
-
-			return Ok(accounts);
 		}
 
-		[HttpPost]
-		public async Task<IActionResult> CreateAccount([FromBody] DTOAccount request)
+		
+		public async Task<(bool Success, string Message, Account? Account)> CreateAccountAsync(DTOAccount request)
 		{
+			
 			var customerExists = await _context.Customers.AnyAsync(c => c.Id == request.CustomerId);
 			if (!customerExists)
 			{
-				return BadRequest("Hata: Belirtilen müşteri sistemde bulunamadı!");
+				return (false, "Hata: Belirtilen müşteri sistemde bulunamadı!", null);
 			}
 
+			
 			var currencyExists = await _context.Currencies.AnyAsync(c => c.Id == request.CurrencyId);
 			if (!currencyExists)
 			{
-				return BadRequest("Hata: Geçersiz para birimi!");
+				return (false, "Hata: Geçersiz para birimi!", null);
 			}
 
 			
@@ -54,7 +51,7 @@ namespace MiniHazine.API.Controllers
 			_context.Accounts.Add(account);
 			await _context.SaveChangesAsync();
 
-			return Ok(account);
+			return (true, "Hesap başarıyla oluşturuldu.", account);
 		}
 	}
 }

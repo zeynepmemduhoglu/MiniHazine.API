@@ -12,7 +12,7 @@ namespace MiniHazine.API.Services
 			_context = context;
 		}
 
-		// Döviz Alım / Satım İşlemi
+		
 		public async Task<bool> ProcessTransactionAsync(int accountId, decimal amount, string transactionType)
 		{
 			var account = await _context.Accounts.FindAsync(accountId);
@@ -20,12 +20,12 @@ namespace MiniHazine.API.Services
 
 			if (transactionType == "BUY")
 			{
-				account.Balance += amount; // Alış yapıldığında bakiye artar
+				account.Balance += amount; 
 			}
 			else if (transactionType == "SELL")
 			{
-				if (account.Balance < amount) return false; // Yetersiz bakiye kontrolü
-				account.Balance -= amount; // Satış yapıldığında bakiye düşer
+				if (account.Balance < amount) return false; 
+				account.Balance -= amount; 
 			}
 
 			await _context.SaveChangesAsync();

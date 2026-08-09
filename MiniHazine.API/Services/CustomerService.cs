@@ -1,27 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MiniHazine.API.DTOs;
 using MiniHazine.API.Entities;
 
-namespace MiniHazine.API.Controllers
+namespace MiniHazine.API.Services
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class CustomersController : ControllerBase
+	public class CustomerService
 	{
 		private readonly AppDbContext _context;
 
-		public CustomersController(AppDbContext context)
+		public CustomerService(AppDbContext context)
 		{
 			_context = context;
 		}
 
 		
-		[HttpGet]
-		public async Task<IActionResult> GetCustomers()
+		public async Task<IEnumerable<DTOCustomer>> GetCustomersAsync()
 		{
-			
-			var customers = await _context.Customers
+			return await _context.Customers
 				.Select(c => new DTOCustomer
 				{
 					CustomerId = c.Id,
@@ -32,15 +27,11 @@ namespace MiniHazine.API.Controllers
 					PhoneNumber = c.PhoneNumber
 				})
 				.ToListAsync();
-
-			return Ok(customers);
 		}
 
 		
-		[HttpPost]
-		public async Task<IActionResult> CreateCustomer([FromBody] DTOCustomer request)
+		public async Task<DTOCustomer> CreateCustomerAsync(DTOCustomer request)
 		{
-			
 			var customer = new Customer
 			{
 				FirstName = request.FirstName,
@@ -54,10 +45,8 @@ namespace MiniHazine.API.Controllers
 			_context.Customers.Add(customer);
 			await _context.SaveChangesAsync();
 
-			
 			request.CustomerId = customer.Id;
-
-			return Ok(new { Message = "Müşteri başarıyla oluşturuldu.", Customer = request });
+			return request;
 		}
 	}
 }

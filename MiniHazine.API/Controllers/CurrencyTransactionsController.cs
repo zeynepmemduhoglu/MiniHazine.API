@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MiniHazine.API.DTOs;
 using MiniHazine.API.Entities;
+using MiniHazine.API.Services;
 
 namespace MiniHazine.API.Controllers
 {
@@ -8,99 +10,44 @@ namespace MiniHazine.API.Controllers
 	[ApiController]
 	public class CurrencyTransactionsController : ControllerBase
 	{
-		private readonly AppDbContext _context;
+		private readonly CurrencyTransactionService _transactionService;
+		private readonly AppDbContext _context; 
 
-		public CurrencyTransactionsController(AppDbContext context)
+		public CurrencyTransactionsController(CurrencyTransactionService transactionService, AppDbContext context)
 		{
+			_transactionService = transactionService;
 			_context = context;
 		}
 
-		// 1. DÖVİZ ALIŞ İŞLEMİ (Buy)
+		
 		[HttpPost("buy")]
 		public async Task<IActionResult> BuyCurrency([FromBody] CurrencyTransactionRequest request)
 		{
-			// Hesap kontrolü
-			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
-			if (account == null)
+			var result = await _transactionService.BuyCurrencyAsync(request);
+
+			if (!result.Success)
 			{
-				return BadRequest("Hata: Belirtilen müşteri veya hesap bulunamadı!");
+				return BadRequest(result.Message);
 			}
 
-			// Kur bilgisini al (Örn: USD kuru)
-			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.CurrencyId == request.CurrencyId);
-			if (exchangeRate == null)
-			{
-				return BadRequest("Hata: Bu para birimi için geçerli kur bulunamadı!");
-			}
-
-			// Maliyet hesaplama (Alış kuru üzerinden)
-			decimal totalCost = request.Amount * exchangeRate.BuyRate;
-
-			// Bakiyeyi güncelle (Hesaba döviz eklenir)
-			account.Balance += request.Amount;
-
-			// İşlemi geçmişe kaydet (CurrencyTransaction)
-			var transaction = new CurrencyTransaction
-			{
-				CustomerId = request.CustomerId,
-				AccountId = request.AccountId,
-				CurrencyId = request.CurrencyId,
-				Amount = request.Amount,
-				TotalRate = exchangeRate.BuyRate,
-				TransactionType = "BUY", // Alış
-				TransactionDate = DateTime.UtcNow
-			};
-
-			_context.CurrencyTransactions.Add(transaction);
-			await _context.SaveChangesAsync();
-
-			return Ok(new { Message = "Döviz alış işlemi başarıyla gerçekleştirildi.", Transaction = transaction });
+			return Ok(new { Message = result.Message, Transaction = result.Transaction });
 		}
 
-		// 2. DÖVİZ SATIŞ İŞLEMİ (Sell)
+		
 		[HttpPost("sell")]
 		public async Task<IActionResult> SellCurrency([FromBody] CurrencyTransactionRequest request)
 		{
-			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
-			if (account == null)
+			var result = await _transactionService.SellCurrencyAsync(request);
+
+			if (!result.Success)
 			{
-				return BadRequest("Hata: Belirtilen müşteri veya hesap bulunamadı!");
+				return BadRequest(result.Message);
 			}
 
-			// Bakiye yeterli mi kontrolü
-			if (account.Balance < request.Amount)
-			{
-				return BadRequest("Hata: Hesabınızda bu işlemi yapacak yeterli bakiye bulunmamaktadır!");
-			}
-
-			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.CurrencyId == request.CurrencyId);
-			if (exchangeRate == null)
-			{
-				return BadRequest("Hata: Bu para birimi için geçerli kur bulunamadı!");
-			}
-
-			// Bakiyeden düş
-			account.Balance -= request.Amount;
-
-			// İşlemi geçmişe kaydet
-			var transaction = new CurrencyTransaction
-			{
-				CustomerId = request.CustomerId,
-				AccountId = request.AccountId,
-				CurrencyId = request.CurrencyId,
-				Amount = request.Amount,
-				TotalRate = exchangeRate.SellRate, // Satış kuru
-				TransactionType = "SELL", // Satış
-				TransactionDate = DateTime.UtcNow
-			};
-
-			_context.CurrencyTransactions.Add(transaction);
-			await _context.SaveChangesAsync();
-
-			return Ok(new { Message = "Döviz satış işlemi başarıyla gerçekleştirildi.", Transaction = transaction });
+			return Ok(new { Message = result.Message, Transaction = result.Transaction });
 		}
 
-		// 3. TÜM İŞLEM GEÇMİŞİNİ LİSTELEME (GET)
+		
 		[HttpGet]
 		public async Task<IActionResult> GetTransactions()
 		{
