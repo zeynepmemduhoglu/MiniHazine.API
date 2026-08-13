@@ -1,0 +1,117 @@
+.accountsPage {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pageTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 0.4rem 0;
+}
+
+.pageSubtitle {
+    font-size: 0.95rem;
+    color: #64748B;
+    margin: 0;
+}
+
+.primaryBtn {
+    background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+    color: #FFFFFF;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+.primaryBtn:hover {
+    opacity: 0.9;
+}
+
+.contentCard {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tableToolbar {
+    display: flex;
+    justify-content: space-between;
+}
+
+.searchBox {
+    width: 100%;
+    max-width: 350px;
+    padding: 0.6rem 1rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background-color: #F8FAFC;
+    font-size: 0.9rem;
+    outline: none;
+    color: #0F172A;
+    transition: all 0.2s ease;
+}
+
+.searchBox:focus {
+    border-color: #38BDF8;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.emptyIconContainer {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #F0F9FF;
+    color: #0284C7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+}
+
+.emptyState h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+}
+
+.emptyState p {
+    font-size: 0.9rem;
+    color: #64748B;
+    max-width: 400px;
+    margin: 0;
+}
+
+.accountTable {
+    width: 100%;
+    border-collapse: collapse;
+}

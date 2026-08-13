@@ -13,7 +13,7 @@ namespace MiniHazine.API.Services
 			_context = context;
 		}
 
-		// Belirli bir müşterinin hesaplarını getirme iş kuralı
+		
 		public async Task<IEnumerable<Account>> GetAccountsByCustomerAsync(int customerId)
 		{
 			return await _context.Accounts

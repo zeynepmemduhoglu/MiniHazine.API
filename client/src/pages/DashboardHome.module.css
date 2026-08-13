@@ -1,0 +1,147 @@
+.dashboardContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.welcomeBanner {
+    background-color: #0F172A;
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.bannerText h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.bannerText p {
+    font-size: 0.95rem;
+    color: #94A3B8;
+    margin: 0;
+
+
+
+
+}
+
+
+.actionBtn {
+    background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+    color: #FFFFFF;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+.actionBtn:hover {
+    opacity: 0.9;
+}
+
+.metricsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.metricCard {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.cardInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.cardTitle {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748B;
+}
+
+.cardValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+}
+
+.cardTrendPositive {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #10B981;
+}
+
+.cardTrendWarning {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #F59E0B;
+}
+
+.cardIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blueIcon {
+    background-color: #F0F9FF;
+    color: #0284C7;
+}
+
+.greenIcon {
+    background-color: #ECFDF5;
+    color: #10B981;
+}
+
+.purpleIcon {
+    background-color: #F5F3FF;
+    color: #8B5CF6;
+}
+
+.orangeIcon {
+    background-color: #FFFBEB;
+    color: #F59E0B;
+}
+
+
+
+
+
+.bannerText {
+    display: flex;          
+    align-items: baseline;  
+    gap: 1rem;              
+}
+
+.bannerText h2 {
+    margin: 0;
+    white-space: nowrap;    
+}
+
+.bannerText p {
+    margin: 0;
+    color: #94A3B8;
+}

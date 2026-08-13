@@ -1,0 +1,56 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
+    height: 70px;
+    box-sizing: border-box;
+}
+
+.headerTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.searchBar input {
+    width: 300px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background-color: #F8FAFC;
+    font-size: 0.9rem;
+    outline: none;
+    color: #0F172A;
+}
+
+.searchBar input:focus {
+    border-color: #38BDF8;
+    background-color: #FFFFFF;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.userAvatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+    color: #FFFFFF;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+}

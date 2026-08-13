@@ -1,0 +1,118 @@
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background-color: #020617;
+    color: #F8FAFC;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #1E293B;
+    position: sticky;
+    top: 0;
+}
+
+.sidebarHeader, 
+.logoContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid #1E293B;
+}
+
+.logoIcon {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #38BDF8 0%, #FF6B6B 100%);
+    padding: 0.4rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logoText h2, 
+.brandName {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #FFFFFF 30%, #93C5FD 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logoText span, 
+.brandSub {
+    font-size: 0.7rem;
+    color: #64748B;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.navMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    color: #94A3B8;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.navItem:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #F8FAFC;
+}
+
+.active {
+    background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+}
+
+.sidebarFooter, 
+.logoutContainer {
+    padding: 1rem;
+    margin-top: auto;
+    border-top: 1px solid #1E293B;
+}
+
+.logoutBtn, 
+.logoutButton {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background-color: #EF4444;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.logoutBtn:hover, 
+.logoutButton:hover {
+    background-color: #DC2626;
+
+
+
+
+    .navIcon {
+    margin-right: 10px;
+    opacity: 0.8;
+}
+}

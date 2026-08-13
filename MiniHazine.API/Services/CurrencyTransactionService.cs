@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MiniHazine.API.DTOs;
 using MiniHazine.API.Entities;
 
 namespace MiniHazine.API.Services
@@ -32,24 +33,24 @@ namespace MiniHazine.API.Services
 				return (false, "Hata: Bu para birimi için geçerli kur bulunamadı!", null);
 			}
 
-			decimal totalCost = request.Amount * exchangeRate.BuyingRate;
+			decimal totalCost = request.Amount * exchangeRate.BuyRate;
 			account.Balance += request.Amount;
 
-			var transaction = new CurrencyTransaction
+			var buyTransaction = new CurrencyTransaction
 			{
 				CustomerId = request.CustomerId,
 				AccountId = request.AccountId,
 				CurrencyId = request.CurrencyId,
 				Amount = request.Amount,
-				TotalRate = exchangeRate.BuyingRate,
+				TotalRate = exchangeRate.BuyRate,
 				TransactionType = "BUY",
 				TransactionDate = DateTime.UtcNow
 			};
 
-			_context.CurrencyTransactions.Add(transaction);
+			_context.CurrencyTransactions.Add(buyTransaction);
 			await _context.SaveChangesAsync();
 
-			return (true, "Döviz alış işlemi başarıyla gerçekleştirildi.", transaction);
+			return (true, "Döviz alış işlemi başarıyla gerçekleştirildi.", buyTransaction);
 		}
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(CurrencyTransactionRequest request)
@@ -79,21 +80,21 @@ namespace MiniHazine.API.Services
 
 			account.Balance -= request.Amount;
 
-			var transaction = new CurrencyTransaction
+			var sellTransaction = new CurrencyTransaction
 			{
 				CustomerId = request.CustomerId,
 				AccountId = request.AccountId,
 				CurrencyId = request.CurrencyId,
 				Amount = request.Amount,
-				TotalRate = exchangeRate.SellingRate,
+				TotalRate = exchangeRate.SellRate,
 				TransactionType = "SELL",
 				TransactionDate = DateTime.UtcNow
 			};
 
-			_context.CurrencyTransactions.Add(transaction);
+			_context.CurrencyTransactions.Add(sellTransaction);
 			await _context.SaveChangesAsync();
 
-			return (true, "Döviz satış işlemi başarıyla gerçekleştirildi.", transaction);
+			return (true, "Döviz satış işlemi başarıyla gerçekleştirildi.", sellTransaction);
 		}
 	}
 }
