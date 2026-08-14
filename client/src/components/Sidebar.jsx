@@ -1,6 +1,8 @@
 import React from 'react';
 import styles from './Sidebar.module.css';
 
+
+
 const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
 
 
@@ -24,6 +26,7 @@ const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
 
 
 
+
       <nav className={styles.navMenu}>
         
         <a 
@@ -43,7 +46,6 @@ const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Müşteriler
         </a>
-
         
         <a 
           href="#accounts" 
@@ -54,7 +56,11 @@ const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
           Hesaplar
         </a>
 
-        <a href="#rates" onClick={(e) => e.preventDefault()} className={styles.navItem}>
+        <a 
+          href="#rates" 
+          onClick={(e) => { e.preventDefault(); setActiveTab('exchangeRates'); }} 
+          className={`${styles.navItem} ${activeTab === 'exchangeRates' ? styles.active : ''}`}
+        >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           Döviz Kurları
         </a>
@@ -87,9 +93,11 @@ const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
       </nav>
 
       <div className={styles.sidebarFooter}>
+        
         <button onClick={onLogout} className={styles.logoutBtn}>
           Çıkış Yap
         </button>
+        
       </div>
     </div>
   );

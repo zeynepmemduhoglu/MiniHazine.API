@@ -1,0 +1,72 @@
+.exchangePage {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pageHeader h2 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.pageHeader p {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.contentCard {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.rateTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.rateTable th {
+  padding: 0.75rem 1rem;
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rateTable td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.codeCell {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.positive {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.negative {
+  color: #ef4444;
+  font-weight: 600;
+}

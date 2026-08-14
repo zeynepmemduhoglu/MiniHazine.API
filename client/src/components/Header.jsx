@@ -3,16 +3,14 @@ import styles from './Header.module.css';
 
 
 
+
 const Header = ({ activeTab }) => {
-  
-
-
 
   const titles = {
     dashboard: "Dashboard",
     customers: "Müşteriler",
     accounts: "Hesaplar",
-    rates: "Döviz Kurları",
+    exchangeRates: "Döviz Kurları",
     transactions: "Döviz İşlemleri",
     history: "İşlem Geçmişi",
     reports: "Raporlar",
@@ -20,42 +18,26 @@ const Header = ({ activeTab }) => {
     settings: "Ayarlar"
   };
 
-  
+
+
+
   const pageTitle = titles[activeTab] || "Dashboard";
 
-
-
-
-
+  
   return (
     <header className={styles.header}>
-     
       <h2 className={styles.headerTitle}>{pageTitle}</h2>
-      
-
-
-
 
       <div className={styles.searchBar}>
         <input type="text" placeholder="Müşteri, hesap veya işlem ara..." />
       </div>
 
-
-
-
       <div className={styles.userInfo}>
         <span>Hoşgeldiniz, <strong>admin</strong></span>
-        
-        
         <div className={styles.userAvatar}>Z</div>
-
-
-
       </div>
     </header>
   );
 };
-
-
 
 export default Header;
