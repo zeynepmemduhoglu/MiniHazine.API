@@ -4,16 +4,16 @@ using MiniHazine.API.Entities;
 
 namespace MiniHazine.API.Services
 {
-	public class CurrencyTransactionService
+	public class DTOCurrencyTransactionService
 	{
 		private readonly AppDbContext _context;
 
-		public CurrencyTransactionService(AppDbContext context)
+		public DTOCurrencyTransactionService(AppDbContext context)
 		{
 			_context = context;
 		}
 
-		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(CurrencyTransactionRequest request)
+		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
 			if (account == null)
@@ -53,7 +53,7 @@ namespace MiniHazine.API.Services
 			return (true, "Döviz alış işlemi başarıyla gerçekleştirildi.", buyTransaction);
 		}
 
-		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(CurrencyTransactionRequest request)
+		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
 			if (account == null)

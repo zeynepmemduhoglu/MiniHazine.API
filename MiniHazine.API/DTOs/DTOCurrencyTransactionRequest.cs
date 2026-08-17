@@ -1,6 +1,6 @@
-﻿namespace MiniHazine.API.Entities
+﻿namespace MiniHazine.API.DTOs
 {
-	public class CurrencyTransactionRequest
+	public class DTOCurrencyTransactionRequest
 	{
 		public int CustomerId { get; set; }
 		public int AccountId { get; set; }        

@@ -10,10 +10,10 @@ namespace MiniHazine.API.Controllers
 	[ApiController]
 	public class CurrencyTransactionsController : ControllerBase
 	{
-		private readonly CurrencyTransactionService _transactionService;
+		private readonly DTOCurrencyTransactionService _transactionService;
 		private readonly AppDbContext _context; 
 
-		public CurrencyTransactionsController(CurrencyTransactionService transactionService, AppDbContext context)
+		public CurrencyTransactionsController(DTOCurrencyTransactionService transactionService, AppDbContext context)
 		{
 			_transactionService = transactionService;
 			_context = context;
@@ -21,7 +21,7 @@ namespace MiniHazine.API.Controllers
 
 		
 		[HttpPost("buy")]
-		public async Task<IActionResult> BuyCurrency([FromBody] CurrencyTransactionRequest request)
+		public async Task<IActionResult> BuyCurrency([FromBody] DTOCurrencyTransactionRequest request)
 		{
 			var result = await _transactionService.BuyCurrencyAsync(request);
 
@@ -35,7 +35,7 @@ namespace MiniHazine.API.Controllers
 
 		
 		[HttpPost("sell")]
-		public async Task<IActionResult> SellCurrency([FromBody] CurrencyTransactionRequest request)
+		public async Task<IActionResult> SellCurrency([FromBody] DTOCurrencyTransactionRequest request)
 		{
 			var result = await _transactionService.SellCurrencyAsync(request);
 

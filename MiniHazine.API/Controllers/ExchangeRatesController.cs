@@ -4,7 +4,7 @@ using MiniHazine.API.Entities;
 
 namespace MiniHazine.API.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/exchange-rates")]
 	[ApiController]
 	public class ExchangeRatesController : ControllerBase
 	{
@@ -26,6 +26,11 @@ namespace MiniHazine.API.Controllers
 		public async Task<IActionResult> CreateExchangeRate([FromBody] ExchangeRate exchangeRate)
 		{
 			
+			if (exchangeRate == null)
+			{
+				return BadRequest("Gönderilen veriler boş olamaz.");
+			}
+
 			exchangeRate.UpdatedDate = DateTime.UtcNow;
 
 			_context.ExchangeRates.Add(exchangeRate);

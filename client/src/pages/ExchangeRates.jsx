@@ -8,7 +8,7 @@ export default function ExchangeRates() {
 
   
   useEffect(() => {
-     fetch('https://localhost:7258/api/exchangerates') 
+     fetch('https://localhost:7258/api/exchange-rates') 
       .then((response) => response.json())
       .then((data) => {
         setRates(data);     
