@@ -1,9 +1,11 @@
 ﻿namespace MiniHazine.API.DTOs
 {
-	public class DTOAccount
+	public class DTOAccountCreate
 	{
-		public long CustomerId { get; set; }      // hngi müşteriye hesap açılacağı
-		public decimal Balance { get; set; }      
-		public int CurrencyId { get; set; }      
+		public int? CustomerId { get; set; }
+		public int CurrencyId { get; set; }
+		public string AccountName { get; set; } = string.Empty;
+		public decimal Balance { get; set; }
+
 	}
 }

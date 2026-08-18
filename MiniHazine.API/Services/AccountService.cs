@@ -13,7 +13,6 @@ namespace MiniHazine.API.Services
 			_context = context;
 		}
 
-		
 		public async Task<IEnumerable<Account>> GetAccountsByCustomerAsync(int customerId)
 		{
 			return await _context.Accounts
@@ -21,27 +20,24 @@ namespace MiniHazine.API.Services
 				.ToListAsync();
 		}
 
-		
-		public async Task<(bool Success, string Message, Account? Account)> CreateAccountAsync(DTOAccount request)
+		public async Task<(bool Success, string Message, Account Account)> CreateAccountAsync(DTOAccountCreate request)
 		{
-			
 			var customerExists = await _context.Customers.AnyAsync(c => c.Id == request.CustomerId);
 			if (!customerExists)
 			{
 				return (false, "Hata: Belirtilen müşteri sistemde bulunamadı!", null);
 			}
 
-			
 			var currencyExists = await _context.Currencies.AnyAsync(c => c.Id == request.CurrencyId);
 			if (!currencyExists)
 			{
 				return (false, "Hata: Geçersiz para birimi!", null);
 			}
 
-			
 			var account = new Account
 			{
 				CustomerId = (int)request.CustomerId,
+				AccountName = request.AccountName, 
 				Balance = request.Balance,
 				CurrencyId = request.CurrencyId,
 				AccountNumber = "ACC-" + new Random().Next(100000, 999999),

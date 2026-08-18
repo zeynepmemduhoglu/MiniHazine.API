@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Customers.module.css';
 
+
 const Customers = () => {
   const [customers, setCustomers] = useState([]); 
-  const [loading, setLoading] = useState(true); 
-  const [isModalOpen, setIsModalOpen] = useState(false); 
-  const [isInsertCustomer, setInsertCustomer] = useState(false); 
 
-  
-  
+  const [loading, setLoading] = useState(true); 
+
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+
+  const [isEditMode, setIsEditMode] = useState(false); 
+  const [editingId, setEditingId] = useState(null); 
+
   const [isSubmitting, setIsSubmitting] = useState(false); 
   
+
   const [formData, setFormData] = useState({ 
     firstName: '', 
     lastName: '', 
@@ -19,11 +23,13 @@ const Customers = () => {
     phoneNumber: '' 
   }); 
 
+  
   const fetchCustomers = async () => {
     try {
       const response = await fetch('https://localhost:7258/api/customers');
       if (response.ok) {
         const data = await response.json();
+        console.log("Backend'den gelen müşteriler:", data); // ID ismini buradan kontrol edebilirsin
         setCustomers(data); 
       }
     } catch (error) {
@@ -37,17 +43,84 @@ const Customers = () => {
     fetchCustomers();
   }, []);
 
+  // Silme Fonksiyonu
+  const handleDelete = async (customer) => {
+    const id = customer.customerId || customer.Id || customer.id;
+    console.log("Silinmek istenen Müşteri ID:", id);
+
+    if (!id) {
+      alert('Müşteri ID bulunamadı!');
+      return;
+    }
+
+    if (!window.confirm('Bu müşteriyi silmek istediğinize emin misiniz?')) return;
+
+    try {
+      const response = await fetch(`https://localhost:7258/api/customers/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchCustomers();
+      } else {
+        alert('Müşteri silinirken bir hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Silme hatası:', error);
+    }
+  };
+
+  // Düzenleme Modunu Açma
+  const handleOpenEditModal = (customer) => {
+    const id = customer.customerId || customer.Id || customer.id;
+    console.log("Düzenlenecek Müşteri ID:", id);
+
+    setIsEditMode(true);
+    setEditingId(id);
+    setFormData({
+      firstName: customer.firstName || '',
+      lastName: customer.lastName || '',
+      email: customer.email || '',
+      identityNumber: customer.identityNumber || '',
+      phoneNumber: customer.phoneNumber || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenAddModal = () => {
+    setIsEditMode(false);
+    setEditingId(null);
+    setFormData({ firstName: '', lastName: '', email: '', identityNumber: '', phoneNumber: '' });
+    setIsModalOpen(true);
+  };
+
+  // Kaydet / Güncelle Form Gönderimi
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    
     if (isSubmitting) return;
+
+    const trimmedIdentity = formData.identityNumber.trim();
+    if (trimmedIdentity.length !== 11) {
+      alert('TC Kimlik Numarası 11 haneli olmalıdır.');
+      return;
+    }
 
     setIsSubmitting(true); 
 
     try {
-      const response = await fetch('https://localhost:7258/api/customers', {
-        method: 'POST',
+      let url = 'https://localhost:7258/api/customers';
+      let method = 'POST';
+
+      if (isEditMode) {
+        url = `https://localhost:7258/api/customers/${editingId}`;
+        method = 'PUT'; 
+      }
+
+      console.log("Gönderilen URL:", url, "Method:", method, "Data:", formData);
+
+      const response = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
@@ -57,7 +130,7 @@ const Customers = () => {
         setFormData({ firstName: '', lastName: '', email: '', identityNumber: '', phoneNumber: '' }); 
         fetchCustomers(); 
       } else {
-        alert('Müşteri eklenirken bir hata oluştu.');
+        alert(isEditMode ? 'Müşteri güncellenirken bir hata oluştu.' : 'Müşteri eklenirken bir hata oluştu.');
       }
     } catch (error) {
       console.error('Hata:', error);
@@ -75,7 +148,7 @@ const Customers = () => {
           <p className={styles.pageSubtitle}>Sistemdeki tüm kurumsal ve bireysel müşterileri listeleyin ve yönetin.</p>
         </div>
         
-        <button className={styles.primaryBtn} onClick={() => setIsModalOpen(true)}>
+        <button className={styles.primaryBtn} onClick={handleOpenAddModal}>
           + Yeni Müşteri Ekle
         </button>
       </div>
@@ -92,7 +165,7 @@ const Customers = () => {
 
         {loading ? (
           <p style={{ textAlign: 'center', padding: '20px' }}>Yükleniyor...</p>
-        ) : customers.length === 0 ? (                
+        ) : customers.length === 0 ? (            
           <div className={styles.emptyState}>
             <div className={styles.emptyIconContainer}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
@@ -113,6 +186,7 @@ const Customers = () => {
                 <th>E-posta</th>
                 <th>TC Kimlik</th>
                 <th>Telefon</th>
+                <th>İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -122,6 +196,37 @@ const Customers = () => {
                   <td>{c.email}</td>
                   <td>{c.identityNumber}</td>
                   <td>{c.phoneNumber}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        onClick={() => handleOpenEditModal(c)}
+                        style={{
+                          background: '#ffc107',
+                          color: '#000',
+                          border: 'none',
+                          padding: '6px 10px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        Düzenle
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(c)}
+                        style={{
+                          background: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 10px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Sil
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -136,7 +241,7 @@ const Customers = () => {
           backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
           <div style={{ background: 'white', padding: '30px', borderRadius: '8px', width: '400px' }}>
-            <h3>Yeni Müşteri Ekle</h3>
+            <h3>{isEditMode ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle'}</h3>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
               
               <input 
@@ -155,7 +260,7 @@ const Customers = () => {
                 required style={{ padding: '8px' }}
               />
               <input 
-                type="text" placeholder="TC Kimlik No" 
+                type="text" placeholder="TC Kimlik No" maxLength="11"
                 value={formData.identityNumber} onChange={(e) => setFormData({...formData, identityNumber: e.target.value})}
                 required style={{ padding: '8px' }}
               />
@@ -168,10 +273,8 @@ const Customers = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 12px' }}>İptal</button>
                 
-                
                 <button 
                   type="submit" 
-                  onClick={()=> setInsertCustomer(false)}
                   disabled={isSubmitting}
                   style={{ 
                     padding: '8px 12px', 
@@ -181,7 +284,7 @@ const Customers = () => {
                     cursor: isSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
+                  {isSubmitting ? 'Kaydediliyor...' : (isEditMode ? 'Güncelle' : 'Kaydet')}
                 </button>
               </div>
             </form>
