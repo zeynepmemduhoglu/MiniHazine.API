@@ -21,7 +21,7 @@ namespace MiniHazine.API.Controllers
 		{
 			var accounts = await _context.Accounts
 				.Include(c => c.Currency)
-				.Include(c => c.Customer) // Müşteri ilişkisini dahil ettik
+				.Include(c => c.Customer) 
 				.Select(c => new
 				{
 					id = c.Id,

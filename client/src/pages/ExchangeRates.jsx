@@ -5,13 +5,11 @@ export default function ExchangeRates() {
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(true); 
 
-
-  
   useEffect(() => {
      fetch('https://localhost:7258/api/exchange-rates') 
       .then((response) => response.json())
       .then((data) => {
-        setRates(data);     
+        setRates(data);    
         setLoading(false);  
       })
       .catch((error) => {
@@ -19,7 +17,6 @@ export default function ExchangeRates() {
         setLoading(false);
       });
   }, []); 
-
 
   if (loading) {
     return (
@@ -43,23 +40,21 @@ export default function ExchangeRates() {
           <table className={styles.rateTable}>
             <thead>
               <tr>
-                <th>Birim</th>
-                <th>Para Birimi</th>
+                <th>ID</th>
+                <th>Döviz Çifti (Pair)</th>
                 <th>Alış (TL)</th>
                 <th>Satış (TL)</th>
-                <th>Değişim</th>
+                <th>Güncellenme Tarihi</th>
               </tr>
             </thead>
             <tbody>
               {rates.map((rate) => (
                 <tr key={rate.id}>
-                  <td className={styles.codeCell}>{rate.code}</td>
-                  <td>{rate.name}</td>
-                  <td>{rate.buying ? rate.buying.toFixed(2) : '0.00'}</td>
-                  <td>{rate.selling ? rate.selling.toFixed(2) : '0.00'}</td>
-                  <td className={rate.change && rate.change.startsWith('+') ? styles.positive : styles.negative}>
-                    {rate.change || '%0.00'}
-                  </td>
+                  <td>{rate.id}</td>
+                  <td className={styles.codeCell}>{rate.pair || "Bilinmiyor"}</td>
+                  <td>{rate.buyRate ? rate.buyRate.toFixed(2) : '0.00'}</td>
+                  <td>{rate.sellRate ? rate.sellRate.toFixed(2) : '0.00'}</td>
+                  <td>{rate.updatedDate ? new Date(rate.updatedDate).toLocaleTimeString() : "-"}</td>
                 </tr>
               ))}
             </tbody>
