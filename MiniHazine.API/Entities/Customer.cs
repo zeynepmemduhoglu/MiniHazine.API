@@ -10,7 +10,7 @@
 		public string PhoneNumber { get; set; } 
 		public bool IsActive { get; set; } = true;
 
-		public string AccountType { get; set; } = string.Empty;    // vadeli mi vadesiz mi döviz mi
+		public string AccountType { get; set; } = string.Empty;   
 	}
 }
 

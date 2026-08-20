@@ -1,27 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './ExchangeRates.module.css';
 
 export default function ExchangeRates() {
   const [rates, setRates] = useState([]);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
+  
+  
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-     fetch('https://localhost:7258/api/exchange-rates') 
-      .then((response) => response.json())
-      .then((data) => {
-        setRates(data);    
-        setLoading(false);  
-      })
-      .catch((error) => {
-        console.error('Veri çekme hatası:', error);
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    const updateAndFetchRates = async () => {
+      try {
+        setLoading(true);
+
+        await fetch('https://localhost:7258/api/exchange-rates/fetch-live', {
+          method: 'POST',
+        });
+
+       
+        const response = await fetch('https://localhost:7258/api/exchange-rates');
+        const data = await response.json();
+        setRates(data);
+      } catch (error) {
+        console.error('Kurlar güncellenirken hata oluştu:', error);
+      } finally {
         setLoading(false);
-      });
-  }, []); 
+      }
+    };
+
+    updateAndFetchRates();
+  }, []);
 
   if (loading) {
     return (
       <div className={styles.exchangePage}>
-        <p style={{ padding: '2rem', color: '#64748B' }}>Yükleniyor...</p>
+        <p style={{ padding: '2rem', color: '#64748B' }}>Güncel kurlar yükleniyor...</p>
       </div>
     );
   }

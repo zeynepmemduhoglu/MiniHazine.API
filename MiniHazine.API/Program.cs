@@ -3,6 +3,7 @@ using MiniHazine.API.Entities;
 using MiniHazine.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy("AllowAll",
@@ -10,15 +11,13 @@ builder.Services.AddCors(options =>
 						.AllowAnyMethod()
 						.AllowAnyHeader());
 });
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-
-builder.Services.AddScoped<DTOCurrencyTransactionService>();
+builder.Services.AddScoped<CurrencyTransactionService>();
 builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<CustomerService>();
@@ -27,7 +26,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -40,8 +38,6 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
-
-
 
 app.MapControllers();
 

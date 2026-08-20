@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MiniHazine.API.Entities;
 using System.Text.Json;
 
@@ -10,10 +11,12 @@ namespace MiniHazine.API.Controllers
 	public class ExchangeRatesController : ControllerBase
 	{
 		private readonly AppDbContext _context;
+		private readonly IConfiguration _configuration;
 
-		public ExchangeRatesController(AppDbContext context)
+		public ExchangeRatesController(AppDbContext context, IConfiguration configuration)
 		{
 			_context = context;
+			_configuration = configuration;
 		}
 
 		[HttpGet]
@@ -45,8 +48,13 @@ namespace MiniHazine.API.Controllers
 			try
 			{
 				using var client = new HttpClient();
-				
-				string url = "https://api.frankfurter.app/latest?from=USD&to=TRY,EUR,GBP";
+
+				string url = _configuration["ApiSettings:FrankfurterUrl"];
+
+				if (string.IsNullOrEmpty(url))
+				{
+					return BadRequest("Hata: Dış servis URL konfigürasyonu bulunamadı.");
+				}
 
 				var response = await client.GetAsync(url);
 				if (!response.IsSuccessStatusCode)
@@ -60,49 +68,56 @@ namespace MiniHazine.API.Controllers
 				var root = doc.RootElement;
 				var ratesElement = root.GetProperty("rates");
 
-				
-				string[] currencies = { "TRY", "EUR", "GBP" };
+				string[] currencies = { "TRY", "EUR", "GBP", "JPY", "CAD", "CHF", "AUD", "RUB", "SEK" };
 
 				foreach (var currency in currencies)
 				{
-					decimal rate = ratesElement.GetProperty(currency).GetDecimal();
-					string pair = $"USD/{currency}";
-
-					decimal buyRate = rate;
-					decimal sellRate = rate * 1.01m; 
-
-					
-					int currencyId = currency switch
+					if (ratesElement.TryGetProperty(currency, out var rateElement))
 					{
-						"TRY" => 2,
-						"EUR" => 3,
-						"GBP" => 4,
-						_ => 1
-					};
+						decimal rate = rateElement.GetDecimal();
+						string pair = $"USD/{currency}";
 
-					var existingRate = await _context.ExchangeRates.FirstOrDefaultAsync(x => x.Pair == pair);
+						decimal buyRate = rate;
+						decimal sellRate = rate * 1.01m;
 
-					if (existingRate != null)
-					{
-						existingRate.BuyRate = buyRate;
-						existingRate.SellRate = sellRate;
-						existingRate.UpdatedDate = DateTime.UtcNow;
-					}
-					else
-					{
-						_context.ExchangeRates.Add(new ExchangeRate
+						int currencyId = currency switch
 						{
-							CurrencyId = currencyId,
-							Pair = pair,
-							BuyRate = buyRate,
-							SellRate = sellRate,
-							UpdatedDate = DateTime.UtcNow
-						});
+							"TRY" => 2,
+							"EUR" => 3,
+							"GBP" => 4,
+							"JPY" => 5,
+							"CAD" => 6,
+							"CHF" => 7,
+							"AUD" => 8,
+							"RUB" => 9,
+							"SEK" => 10,
+							_ => 1
+						};
+
+						var existingRate = await _context.ExchangeRates.FirstOrDefaultAsync(x => x.Pair == pair);
+
+						if (existingRate != null)
+						{
+							existingRate.BuyRate = buyRate;
+							existingRate.SellRate = sellRate;
+							existingRate.UpdatedDate = DateTime.Now;
+						}
+						else
+						{
+							_context.ExchangeRates.Add(new ExchangeRate
+							{
+								CurrencyId = currencyId,
+								Pair = pair,
+								BuyRate = buyRate,
+								SellRate = sellRate,
+								UpdatedDate = DateTime.UtcNow
+							});
+						}
 					}
 				}
 
 				await _context.SaveChangesAsync();
-				return Ok(new { Message = "Tüm canlı kurlar (TRY, EUR, GBP) başarıyla güncellendi!" });
+				return Ok(new { Message = "Seçili tüm canlı kurlar başarıyla güncellendi!" });
 			}
 			catch (Exception ex)
 			{

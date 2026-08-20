@@ -1,22 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MiniHazine.API.DTOs;
-using MiniHazine.API.Entities;
 using MiniHazine.API.Services;
 
 namespace MiniHazine.API.Controllers
 {
-	[Route("api/currency-transactions")]
+	[Route("api/[controller]")]
 	[ApiController]
 	public class CurrencyTransactionsController : ControllerBase
 	{
-		private readonly DTOCurrencyTransactionService _transactionService;
-		private readonly AppDbContext _context; 
+		private readonly CurrencyTransactionService _transactionService;
 
-		public CurrencyTransactionsController(DTOCurrencyTransactionService transactionService, AppDbContext context)
+		public CurrencyTransactionsController(CurrencyTransactionService transactionService)
 		{
 			_transactionService = transactionService;
-			_context = context;
 		}
 
 		
@@ -27,10 +23,10 @@ namespace MiniHazine.API.Controllers
 
 			if (!result.Success)
 			{
-				return BadRequest(result.Message);
+				return BadRequest(new { message = result.Message });
 			}
 
-			return Ok(new { Message = result.Message, Transaction = result.Transaction });
+			return Ok(new { message = result.Message, transaction = result.Transaction });
 		}
 
 		
@@ -41,18 +37,10 @@ namespace MiniHazine.API.Controllers
 
 			if (!result.Success)
 			{
-				return BadRequest(result.Message);
+				return BadRequest(new { message = result.Message });
 			}
 
-			return Ok(new { Message = result.Message, Transaction = result.Transaction });
-		}
-
-		
-		[HttpGet]
-		public async Task<IActionResult> GetTransactions()
-		{
-			var transactions = await _context.CurrencyTransactions.ToListAsync();
-			return Ok(transactions);
+			return Ok(new { message = result.Message, transaction = result.Transaction });
 		}
 	}
 }

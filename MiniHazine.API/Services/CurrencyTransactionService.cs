@@ -4,17 +4,19 @@ using MiniHazine.API.Entities;
 
 namespace MiniHazine.API.Services
 {
-	public class DTOCurrencyTransactionService
+	public class CurrencyTransactionService
 	{
 		private readonly AppDbContext _context;
 
-		public DTOCurrencyTransactionService(AppDbContext context)
+		public CurrencyTransactionService(AppDbContext context)
 		{
 			_context = context;
 		}
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
+
+		
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
 			if (account == null)
 			{
@@ -34,6 +36,8 @@ namespace MiniHazine.API.Services
 			}
 
 			decimal totalCost = request.Amount * exchangeRate.BuyRate;
+
+			
 			account.Balance += request.Amount;
 
 			var buyTransaction = new CurrencyTransaction

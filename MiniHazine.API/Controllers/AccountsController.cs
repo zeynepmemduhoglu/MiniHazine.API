@@ -21,7 +21,7 @@ namespace MiniHazine.API.Controllers
 		{
 			var accounts = await _context.Accounts
 				.Include(c => c.Currency)
-				.Include(c => c.Customer) 
+				.Include(c => c.Customer)
 				.Select(c => new
 				{
 					id = c.Id,
@@ -32,6 +32,7 @@ namespace MiniHazine.API.Controllers
 					currency = c.Currency != null ? c.Currency.Code : "TRY"
 				})
 				.ToListAsync();
+
 
 			return Ok(accounts);
 		}
