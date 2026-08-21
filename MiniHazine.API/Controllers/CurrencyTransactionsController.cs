@@ -15,7 +15,7 @@ namespace MiniHazine.API.Controllers
 			_transactionService = transactionService;
 		}
 
-		
+
 		[HttpPost("buy")]
 		public async Task<IActionResult> BuyCurrency([FromBody] DTOCurrencyTransactionRequest request)
 		{
@@ -29,7 +29,7 @@ namespace MiniHazine.API.Controllers
 			return Ok(new { message = result.Message, transaction = result.Transaction });
 		}
 
-		
+
 		[HttpPost("sell")]
 		public async Task<IActionResult> SellCurrency([FromBody] DTOCurrencyTransactionRequest request)
 		{

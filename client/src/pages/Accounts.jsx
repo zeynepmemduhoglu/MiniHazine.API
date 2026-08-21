@@ -46,6 +46,24 @@ const Accounts = () => {
     fetchCustomers();
   }, []);
 
+  
+  const getCustomerName = (acc) => {
+   
+    if (acc.customerName || acc.CustomerName) {
+      return acc.customerName || acc.CustomerName;
+    }
+
+   
+    const custId = acc.customerId || acc.CustomerId;
+    const cust = customers.find(c => (c.id || c.Id || c.customerId || c.CustomerId) == custId);
+    
+    if (!cust) return 'Bilinmeyen Müşteri';
+    
+    const name = cust.firstName || cust.FirstName || cust.name || cust.Name || '';
+    const surname = cust.lastName || cust.LastName || cust.surname || cust.Surname || '';
+    return `${name} ${surname}`.trim();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -137,15 +155,23 @@ const Accounts = () => {
               </tr>
             </thead>
             <tbody>
-              {accounts.map((acc, index) => (
-                <tr key={index}>
-                  <td>{acc.customerName}</td>
-                  <td>{acc.accountName}</td>
-                  <td>{acc.accountNumber}</td>
-                  <td>{acc.balance}</td>
-                  <td>{acc.currency}</td>
-                </tr>
-              ))}
+              {accounts.map((acc, index) => {
+                const ownerName = getCustomerName(acc);
+                const accName = acc.accountName || acc.AccountName;
+                const accNo = acc.accountNumber || acc.AccountNumber;
+                const balance = acc.balance !== undefined ? acc.balance : acc.Balance;
+                const currency = acc.currency || acc.Currency;
+
+                return (
+                  <tr key={index}>
+                    <td>{ownerName}</td>
+                    <td>{accName}</td>
+                    <td>{accNo}</td>
+                    <td>{balance}</td>
+                    <td>{currency}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -168,8 +194,8 @@ const Accounts = () => {
               >
                 <option value="">Müşteri Seçin</option>
                 {customers.map((c) => (
-                  <option key={c.id || c.customerId} value={c.id || c.customerId}>
-                    {c.firstName} {c.lastName}
+                  <option key={c.id || c.customerId || c.Id} value={c.id || c.customerId || c.Id}>
+                    {c.firstName || c.FirstName} {c.lastName || c.LastName}
                   </option>
                 ))}
               </select>
