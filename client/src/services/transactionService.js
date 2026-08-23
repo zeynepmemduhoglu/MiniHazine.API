@@ -1,5 +1,5 @@
 
-const API_BASE_URL = "https://localhost:7258/api/currencytransactions";;
+const API_BASE_URL = "https://localhost:7258/api/currencytransactions";
 
 export const buyCurrency = async (transactionData) => {
     try {
