@@ -15,29 +15,22 @@ namespace MiniHazine.API.Services
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
-
-		
-			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
+			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
 			if (account == null)
 			{
-				return (false, "Hata: Belirtilen müşteri veya hesap bulunamadı!", null);
+				return (false, "Hata: Belirtilen hesap bulunamadı!", null);
 			}
 
-			var currency = await _context.Currencies.FindAsync(request.CurrencyId);
-			if (currency == null)
-			{
-				return (false, "Hata: Geçersiz para birimi!", null);
-			}
+			request.CustomerId = account.CustomerId;
 
-			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.Pair.Contains(currency.Code));
+			var exchangeRate = await _context.ExchangeRates.FindAsync(request.CurrencyId);
 			if (exchangeRate == null)
 			{
-				return (false, "Hata: Bu para birimi için geçerli kur bulunamadı!", null);
+				return (false, "Hata: Geçersiz döviz kuru seçimi!", null);
 			}
 
 			decimal totalCost = request.Amount * exchangeRate.BuyRate;
 
-			
 			account.Balance += request.Amount;
 
 			var buyTransaction = new CurrencyTransaction
@@ -59,27 +52,23 @@ namespace MiniHazine.API.Services
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
-			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId && a.CustomerId == request.CustomerId);
+			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
 			if (account == null)
 			{
-				return (false, "Hata: Belirtilen müşteri veya hesap bulunamadı!", null);
+				return (false, "Hata: Belirtilen hesap bulunamadı!", null);
 			}
+
+			request.CustomerId = account.CustomerId;
 
 			if (account.Balance < request.Amount)
 			{
 				return (false, "Hata: Hesabınızda bu işlemi yapacak yeterli bakiye bulunamadı!", null);
 			}
 
-			var currency = await _context.Currencies.FindAsync(request.CurrencyId);
-			if (currency == null)
-			{
-				return (false, "Hata: Geçersiz para birimi!", null);
-			}
-
-			var exchangeRate = await _context.ExchangeRates.FirstOrDefaultAsync(e => e.Pair.Contains(currency.Code));
+			var exchangeRate = await _context.ExchangeRates.FindAsync(request.CurrencyId);
 			if (exchangeRate == null)
 			{
-				return (false, "Hata: Bu para birimi için geçerli kur bulunamadı!", null);
+				return (false, "Hata: Geçersiz döviz kuru seçimi!", null);
 			}
 
 			account.Balance -= request.Amount;
