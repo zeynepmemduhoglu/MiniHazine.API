@@ -17,10 +17,25 @@ namespace MiniHazine.API.Controllers
 			_logger = logger;
 		}
 
+		
+		[HttpGet]
+		public async Task<IActionResult> GetAllTransactions()
+		{
+			try
+			{
+				var transactions = await _transactionService.GetTransactionsAsync();
+				return Ok(transactions);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "İşlem geçmişi getirilirken hata oluştu.");
+				return StatusCode(500, new { message = "İşlem geçmişi yüklenirken bir hata oluştu." });
+			}
+		}
+
 		[HttpPost("buy")]
 		public async Task<IActionResult> BuyCurrency([FromBody] DTOCurrencyTransactionRequest request)
 		{
-			
 			_logger.LogInformation("Buy isteği alındı -> CustomerId: {CustomerId}, AccountId: {AccountId}, CurrencyId: {CurrencyId}, Amount: {Amount}",
 				request?.CustomerId, request?.AccountId, request?.CurrencyId, request?.Amount);
 
@@ -38,7 +53,6 @@ namespace MiniHazine.API.Controllers
 		[HttpPost("sell")]
 		public async Task<IActionResult> SellCurrency([FromBody] DTOCurrencyTransactionRequest request)
 		{
-			
 			_logger.LogInformation("Sell isteği alındı -> CustomerId: {CustomerId}, AccountId: {AccountId}, CurrencyId: {CurrencyId}, Amount: {Amount}",
 				request?.CustomerId, request?.AccountId, request?.CurrencyId, request?.Amount);
 

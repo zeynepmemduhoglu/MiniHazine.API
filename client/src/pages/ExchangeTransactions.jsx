@@ -1,58 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { buyCurrency, sellCurrency } from '../services/transactionService';
-import styles from './ExchangeRates.module.css';
 
 export default function ExchangeTransactions() {
+  const [accounts, setAccounts] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [exchangeRates, setExchangeRates] = useState([]);
+  
   const [formData, setFormData] = useState({
     accountId: '',
     currencyId: '',
     amount: ''
   });
 
-  const [accounts, setAccounts] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [rates, setRates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState({ message: '', type: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
 
-  
+  const extractArray = (resData) => {
+    if (Array.isArray(resData)) return resData;
+    if (resData && Array.isArray(resData.data)) return resData.data;
+    if (resData && Array.isArray(resData.$values)) return resData.$values;
+    if (resData && typeof resData === 'object') {
+      const found = Object.values(resData).find(Array.isArray);
+      if (found) return found;
+    }
+    return [];
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        const accResponse = await fetch('https://localhost:7258/api/accounts');
+        const accData = await accResponse.json();
+        setAccounts(extractArray(accData));
 
-        const accountsRes = await fetch('https://localhost:7258/api/accounts');
-        const accountsData = await accountsRes.json();
-        setAccounts(Array.isArray(accountsData) ? accountsData : []);
+        const custResponse = await fetch('https://localhost:7258/api/customers');
+        const custData = await custResponse.json();
+        setCustomers(extractArray(custData));
 
-        const customersRes = await fetch('https://localhost:7258/api/customers');
-        const customersData = await customersRes.json();
-        setCustomers(Array.isArray(customersData) ? customersData : []);
-
-        const ratesRes = await fetch('https://localhost:7258/api/exchange-rates');
-        const ratesData = await ratesRes.json();
-        setRates(Array.isArray(ratesData) ? ratesData : []);
-
-      } catch (error) {
-        console.error('Veriler yüklenirken hata:', error);
-      } finally {
-        setLoading(false);
+        const rateResponse = await fetch('https://localhost:7258/api/exchange-rates');
+        const rateData = await rateResponse.json();
+        setExchangeRates(extractArray(rateData));
+      } catch (err) {
+        console.error('Veriler yüklenirken hata oluştu:', err);
       }
     };
     fetchData();
   }, []);
 
-  
   const getOwnerName = (acc) => {
     if (acc.customerName || acc.CustomerName) {
       return acc.customerName || acc.CustomerName;
     }
     const custId = acc.customerId || acc.CustomerId;
     if (!custId) return 'Bilinmeyen Müşteri';
-    
+
     const cust = customers.find(c => String(c.id || c.Id || c.customerId || c.CustomerId) === String(custId));
     if (!cust) return 'Bilinmeyen Müşteri';
-    
+
     const name = cust.firstName || cust.FirstName || cust.name || cust.Name || '';
     const surname = cust.lastName || cust.LastName || cust.surname || cust.Surname || '';
     return `${name} ${surname}`.trim();
@@ -62,211 +66,254 @@ export default function ExchangeTransactions() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  
-  const selectedAccount = accounts.find(a => String(a.id || a.Id) === String(formData.accountId));
-  const selectedRate = rates.find(r => String(r.currencyId || r.CurrencyId || r.id || r.Id) === String(formData.currencyId));
-
-  const ownerFullName = selectedAccount ? getOwnerName(selectedAccount) : '-';
-  const currentBalance = selectedAccount ? (selectedAccount.balance !== undefined ? selectedAccount.balance : selectedAccount.Balance) : 0;
-  const accountCurrency = selectedAccount ? (selectedAccount.currency || selectedAccount.Currency || 'TRY') : 'TRY';
-
-  const buyRate = selectedRate ? (selectedRate.buyRate !== undefined ? selectedRate.buyRate : selectedRate.BuyRate) : 0;
-  const sellRate = selectedRate ? (selectedRate.sellRate !== undefined ? selectedRate.sellRate : selectedRate.SellRate) : 0;
-  
-  const pairText = selectedRate ? (selectedRate.pair || selectedRate.Pair || '') : '';
-  const currencySymbol = pairText.includes('/') ? pairText.split('/')[0] : '';
-
-  const estimatedBuyTotal = formData.amount && buyRate ? (parseFloat(formData.amount) * parseFloat(buyRate)).toFixed(2) : 0;
-  const estimatedSellTotal = formData.amount && sellRate ? (parseFloat(formData.amount) * parseFloat(sellRate)).toFixed(2) : 0;
-
-  
-  const handleTransaction = async (type) => {
-    setFeedback({ message: '', type: '' });
-
+  const handleBuy = async (e) => {
+    e.preventDefault();
     if (!formData.accountId || !formData.currencyId || !formData.amount) {
-      setFeedback({ message: 'Lütfen tüm alanları eksiksiz doldurun!', type: 'error' });
-      return;
+        setMessage({ text: 'Lütfen tüm alanları doldurun.', type: 'error' });
+        return;
     }
+    setLoading(true);
+    setMessage({ text: '', type: '' });
 
-    
-    const resolvedCustomerId = selectedAccount?.customerId || selectedAccount?.CustomerId || 1;
-
-    const transactionData = {
-      customerId: parseInt(resolvedCustomerId),
-      accountId: parseInt(formData.accountId),
-      currencyId: parseInt(formData.currencyId),
-      amount: parseFloat(formData.amount)
-    };
-
-    console.log("Backend'e Gönderilen Paket:", transactionData);
-
-    const result = type === 'buy' 
-      ? await buyCurrency(transactionData) 
-      : await sellCurrency(transactionData);
+    const result = await buyCurrency({
+      accountId: Number(formData.accountId),
+      currencyId: Number(formData.currencyId),
+      amount: Number(formData.amount)
+    });
 
     if (result.success) {
-      setFeedback({ message: `İşlem Başarılı: ${result.data?.message || 'İşlem tamamlandı.'}`, type: 'success' });
+      setMessage({ text: result.data.message || 'Döviz alış işlemi başarıyla gerçekleştirildi!', type: 'success' });
       setFormData({ accountId: '', currencyId: '', amount: '' });
     } else {
-      setFeedback({ message: `Hata: ${result.message || 'İşlem gerçekleştirilemedi.'}`, type: 'error' });
+      setMessage({ text: result.message || 'Alış işlemi başarısız oldu.', type: 'error' });
     }
+    setLoading(false);
   };
 
-  if (loading) {
-    return (
-      <div className={styles.exchangePage} style={{ padding: '2rem' }}>
-        <p style={{ color: '#64748B' }}>Form yükleniyor...</p>
-      </div>
-    );
-  }
+  const handleSell = async (e) => {
+    e.preventDefault();
+    if (!formData.accountId || !formData.currencyId || !formData.amount) {
+        setMessage({ text: 'Lütfen tüm alanları doldurun.', type: 'error' });
+        return;
+    }
+    setLoading(true);
+    setMessage({ text: '', type: '' });
+
+    const result = await sellCurrency({
+      accountId: Number(formData.accountId),
+      currencyId: Number(formData.currencyId),
+      amount: Number(formData.amount)
+    });
+
+    if (result.success) {
+      setMessage({ text: result.data.message || 'Döviz satış işlemi başarıyla gerçekleştirildi!', type: 'success' });
+      setFormData({ accountId: '', currencyId: '', amount: '' });
+    } else {
+      setMessage({ text: result.message || 'Satış işlemi başarısız oldu.', type: 'error' });
+    }
+    setLoading(false);
+  };
+
+  // Döviz çiftini (örn: USD/TRY) bozmadan, sadece parantezli fiyat kalabalığını temizleyen fonksiyon
+  const getRateDetails = (rate) => {
+    if (!rate) return { id: '', code: '', buy: 0, sell: 0 };
+    const id = rate.id || rate.Id || rate.currencyId || rate.CurrencyId;
+    
+    let rawCode = rate.pair || rate.Pair || rate.currencyCode || rate.CurrencyCode || rate.code || rate.Code || 'Döviz';
+    const code = String(rawCode).split('(')[0].trim(); // Sadece parantez sonrasını atar, USD/TRY gibi çiftler aynen kalır
+
+    const buy = rate.buyRate ?? rate.BuyRate ?? rate.buy ?? rate.Buy ?? 0;
+    const sell = rate.sellRate ?? rate.SellRate ?? rate.sell ?? rate.Sell ?? 0;
+    return { id, code, buy, sell };
+  };
+
+  const selectedAccount = accounts.find(a => String(a.id || a.Id) === String(formData.accountId));
+  const selectedRateObj = exchangeRates.find(r => String(getRateDetails(r).id) === String(formData.currencyId));
+  const selectedRate = getRateDetails(selectedRateObj);
+  const amountValue = Number(formData.amount) || 0;
 
   return (
-    <div className={styles.exchangePage}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h2 className={styles.pageTitle}>Döviz İşlemleri Terminali</h2>
-          <p className={styles.pageSubtitle}>Hazine hesapları üzerinden anlık kur oranlarıyla döviz alım ve satım işlemlerini yönetin.</p>
-        </div>
+    <div style={{ padding: '2rem', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E293B', margin: '0 0 0.5rem 0' }}>
+          Döviz Alım / Satım İşlemleri
+        </h2>
+        <p style={{ color: '#64748B', margin: 0, fontSize: '0.95rem' }}>
+          Hesaplarınız üzerinden kolayca döviz alabilir veya satabilirsiniz.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', maxWidth: '1050px', alignItems: 'start' }}>
+      {message.text && (
+        <div style={{
+          padding: '1rem',
+          marginBottom: '1.5rem',
+          backgroundColor: message.type === 'success' ? '#D1FAE5' : '#FEE2E2',
+          color: message.type === 'success' ? '#065F46' : '#DC2626',
+          borderRadius: '8px',
+          fontWeight: '500'
+        }}>
+          {message.text}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         
-        
-        <div className={styles.contentCard} style={{ margin: 0 }}>
-          
-          {feedback.message && (
-            <div style={{ padding: '12px 15px', borderRadius: '6px', marginBottom: '1.5rem', backgroundColor: feedback.type === 'success' ? '#DEF7EC' : '#FDE8E8', color: feedback.type === 'success' ? '#03543F' : '#9B1C1C', fontSize: '0.9rem', fontWeight: '500', border: `1px solid ${feedback.type === 'success' ? '#BCF0DA' : '#F8B4B4'}` }}>
-              {feedback.message}
+        {/* SOL TARAF: FORM */}
+        <div style={{ flex: '2', minWidth: '350px', backgroundColor: '#FFFFFF', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
+          <form style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>
+                Hesap Seçimi
+              </label>
+              <select
+                name="accountId"
+                value={formData.accountId}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none' }}
+                required
+              >
+                <option value="">-- Hesap Seçiniz --</option>
+                {accounts.map((acc) => {
+                  const owner = getOwnerName(acc);
+                  const accId = acc.id || acc.Id;
+                  const accType = acc.accountType || acc.AccountType || 'Hesap';
+                  const balance = acc.balance !== undefined ? acc.balance : acc.Balance;
+                  return (
+                    <option key={accId} value={accId}>
+                      {owner} - {accType} (Bakiye: {balance} ₺)
+                    </option>
+                  );
+                })}
+              </select>
             </div>
-          )}
 
-          
-          <div style={{ marginBottom: '1.2rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>İşlem Yapılacak Hesap:</label>
-            <select 
-              name="accountId" 
-              value={formData.accountId} 
-              onChange={handleChange} 
-              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: '#FFF', fontSize: '0.95rem' }}
-            >
-              <option value="">-- Bir Hesap Seçiniz --</option>
-              {accounts && accounts.map((acc, index) => {
-                const id = acc.id || acc.Id || index;
-                const ownerName = getOwnerName(acc);
-                const name = acc.accountName || acc.AccountName || `Hesap #${id}`;
-                const balance = acc.balance !== undefined ? acc.balance : (acc.Balance !== undefined ? acc.Balance : 0);
-                const currency = acc.currency || acc.Currency || 'TRY';
-                
-                return (
-                  <option key={id} value={id}>
-                    {ownerName} — {name} ({balance} {currency})
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
-          
-          <div style={{ marginBottom: '1.2rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>Döviz Çifti (Parite):</label>
-            <select 
-              name="currencyId" 
-              value={formData.currencyId} 
-              onChange={handleChange} 
-              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: '#FFF', fontSize: '0.95rem' }}
-            >
-              <option value="">-- Bir Döviz Seçiniz --</option>
-              {rates && rates.map((rate) => {
-                const rateId = rate.currencyId || rate.CurrencyId || rate.id || rate.Id;
-                const pair = rate.pair || rate.Pair;
-                const bRate = rate.buyRate !== undefined ? rate.buyRate : rate.BuyRate;
-                const sRate = rate.sellRate !== undefined ? rate.sellRate : rate.SellRate;
-                return (
-                  <option key={rateId} value={rateId}>
-                    {pair} (Alış: {bRate} ₺ | Satış: {sRate} ₺)
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
-
-          <div style={{ marginBottom: '1.8rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>İşlem Miktarı:</label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <input 
-                name="amount" 
-                type="number" 
-                placeholder="Örn: 100"
-                value={formData.amount}
-                onChange={handleChange} 
-                style={{ width: '100%', padding: '10px', paddingRight: '55px', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box', fontSize: '0.95rem' }}
-              />
-              {currencySymbol && (
-                <span style={{ position: 'absolute', right: '14px', color: '#64748B', fontWeight: '600', fontSize: '0.9rem', pointerEvents: 'none' }}>
-                  {currencySymbol}
-                </span>
-              )}
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>
+                Döviz Kuru / Birimi
+              </label>
+              <select
+                name="currencyId"
+                value={formData.currencyId}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none' }}
+                required
+              >
+                <option value="">-- Döviz Seçiniz --</option>
+                {exchangeRates.map((rate, index) => {
+                  const { id, code } = getRateDetails(rate);
+                  const uniqueKey = id || index;
+                  return (
+                    <option key={uniqueKey} value={id}>
+                      {code}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
-          </div>
 
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>
+                Miktar
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="number"
+                  step="any"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  placeholder="Örn: 100"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px 70px 10px 12px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #CBD5E1', 
+                    fontSize: '0.95rem', 
+                    boxSizing: 'border-box', 
+                    outline: 'none' 
+                  }}
+                  required
+                />
+                {selectedRate.code && selectedRate.code !== 'Döviz' && (
+                  <span style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    backgroundColor: '#F1F5F9',
+                    color: '#1E293B',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    border: '1px solid #CBD5E1',
+                    pointerEvents: 'none'
+                  }}>
+                    {selectedRate.code}
+                  </span>
+                )}
+              </div>
+            </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => handleTransaction('buy')} style={{ backgroundColor: '#10B981', color: 'white', padding: '12px', flex: 1, border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>Döviz Al</button>
-            <button onClick={() => handleTransaction('sell')} style={{ backgroundColor: '#EF4444', color: 'white', padding: '12px', flex: 1, border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>Döviz Sat</button>
-          </div>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <button
+                type="button"
+                onClick={handleBuy}
+                disabled={loading}
+                style={{ flex: 1, padding: '12px', backgroundColor: '#10B981', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '1rem', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+              >
+                {loading ? 'Bekleyiniz...' : 'Alış Yap (BUY)'}
+              </button>
 
+              <button
+                type="button"
+                onClick={handleSell}
+                disabled={loading}
+                style={{ flex: 1, padding: '12px', backgroundColor: '#EF4444', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '1rem', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+              >
+                {loading ? 'Bekleyiniz...' : 'Satış Yap (SELL)'}
+              </button>
+            </div>
+          </form>
         </div>
 
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* SAĞ TARAF: CANLI İŞLEM ÖZETİ PANOSU */}
+        <div style={{ flex: '1', minWidth: '280px', backgroundColor: '#F8FAFC', padding: '2rem', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.2rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '0.5rem' }}>İşlem Özeti</h3>
           
-          
-          <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            <h4 style={{ fontSize: '0.95rem', color: '#1E293B', marginBottom: '1rem', borderBottom: '2px solid #F1F5F9', paddingBottom: '8px', fontWeight: '600' }}>Seçili Hesap Bilgileri</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem', color: '#475569' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Hesap Sahibi:</span>
-                <strong style={{ color: '#1E293B' }}>{ownerFullName}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Mevcut Bakiye:</span>
-                <strong style={{ color: '#059669' }}>{currentBalance} {accountCurrency}</strong>
-              </div>
-            </div>
+          <div>
+            <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>İşlem Yapan Hesap</span>
+            <strong style={{ color: '#1E293B', fontSize: '1rem' }}>
+              {selectedAccount ? getOwnerName(selectedAccount) : 'Hesap seçilmedi'}
+            </strong>
           </div>
 
-          
-          <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            <h4 style={{ fontSize: '0.95rem', color: '#1E293B', marginBottom: '1rem', borderBottom: '2px solid #F1F5F9', paddingBottom: '8px', fontWeight: '600' }}>Canlı İşlem Özeti</h4>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem', color: '#475569' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Seçilen Parite:</span>
-                <strong style={{ color: '#1E293B' }}>{pairText || 'Seçilmedi'}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Alış Kuru:</span>
-                <strong style={{ color: '#10B981' }}>{buyRate ? `${buyRate} ₺` : '-'}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Satış Kuru:</span>
-                <strong style={{ color: '#EF4444' }}>{sellRate ? `${sellRate} ₺` : '-'}</strong>
-              </div>
-              <hr style={{ border: 'none', borderTop: '1px solid #F1F5F9', margin: '4px 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem' }}>
-                <span>Tahmini Maliyet (Alış):</span>
-                <strong style={{ color: '#0284C7' }}>{estimatedBuyTotal} ₺</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem' }}>
-                <span>Tahmini Gelir (Satış):</span>
-                <strong style={{ color: '#D97706' }}>{estimatedSellTotal} ₺</strong>
-              </div>
-            </div>
+          <div>
+            <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Mevcut Bakiye</span>
+            <strong style={{ color: '#1E293B', fontSize: '1rem' }}>
+              {selectedAccount ? `${selectedAccount.balance !== undefined ? selectedAccount.balance : selectedAccount.Balance} ₺` : '-'}
+            </strong>
           </div>
 
+          <div>
+            <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Seçilen Döviz & Miktar</span>
+            <strong style={{ color: '#1E293B', fontSize: '1rem' }}>
+              {selectedRate.code ? `${amountValue} ${selectedRate.code}` : 'Döviz seçilmedi'}
+            </strong>
+          </div>
+
+          <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <span style={{ color: '#10B981', fontWeight: '600', fontSize: '0.9rem' }}>Alış Kuru / Tutar:</span>
+              <strong style={{ color: '#10B981' }}>{selectedRate.code ? `${selectedRate.buy} ₺ (${(amountValue * selectedRate.buy).toFixed(2)} ₺)` : '0.00 ₺'}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#EF4444', fontWeight: '600', fontSize: '0.9rem' }}>Satış Kuru / Tutar:</span>
+              <strong style={{ color: '#EF4444' }}>{selectedRate.code ? `${selectedRate.sell} ₺ (${(amountValue * selectedRate.sell).toFixed(2)} ₺)` : '0.00 ₺'}</strong>
+            </div>
+          </div>
+          
         </div>
-
       </div>
     </div>
   );

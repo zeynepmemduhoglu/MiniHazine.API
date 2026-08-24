@@ -13,6 +13,37 @@ namespace MiniHazine.API.Services
 			_context = context;
 		}
 
+		public async Task<List<DTOCurrencyTransactionDto>> GetTransactionsAsync()
+		{
+			var result = await _context.CurrencyTransactions
+				//.Include(t => t.Account)
+				////.ThenInclude(a => a.Customer)
+				////.Include(t => t.Currency)
+				.OrderByDescending(t => t.TransactionDate)
+				.Select(t => new DTOCurrencyTransactionDto
+				{
+
+					Id = t.Id,
+					TransactionType = t.TransactionType,
+					Amount = t.Amount,
+					TotalRate = t.TotalRate,
+					TransactionDate = t.TransactionDate,
+					AccountId = t.AccountId,
+					Account = t.Account,
+					AccountType = t.Account != null ? t.Account.AccountName : "Bilinmeyen Hesap",
+					CustomerName = t.Account != null && t.Account.Customer != null
+						? $"{t.Account.Customer.FirstName} {t.Account.Customer.LastName}"
+						: "Bilinmeyen Müşteri",
+					CurrencyCode = t.Currency != null ? t.Currency.Code : ""
+				})
+				.ToListAsync();
+
+
+
+
+			return result;
+		}
+
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
@@ -37,11 +68,11 @@ namespace MiniHazine.API.Services
 			{
 				CustomerId = request.CustomerId,
 				AccountId = request.AccountId,
-				CurrencyId = request.CurrencyId,
+				CurrencyId = exchangeRate.CurrencyId,
 				Amount = request.Amount,
 				TotalRate = exchangeRate.BuyRate,
 				TransactionType = "BUY",
-				TransactionDate = DateTime.UtcNow
+				TransactionDate = DateTime.UtcNow,
 			};
 
 			_context.CurrencyTransactions.Add(buyTransaction);
@@ -77,7 +108,7 @@ namespace MiniHazine.API.Services
 			{
 				CustomerId = request.CustomerId,
 				AccountId = request.AccountId,
-				CurrencyId = request.CurrencyId,
+				CurrencyId = exchangeRate.CurrencyId,
 				Amount = request.Amount,
 				TotalRate = exchangeRate.SellRate,
 				TransactionType = "SELL",

@@ -1,9 +1,6 @@
 import React from 'react';
 import styles from './Header.module.css';
 
-
-
-
 const Header = ({ activeTab }) => {
 
   const titles = {
@@ -11,18 +8,16 @@ const Header = ({ activeTab }) => {
     customers: "Müşteriler",
     accounts: "Hesaplar",
     exchangeRates: "Döviz Kurları",
+    exchangeTransactions: "Döviz İşlemleri", 
     transactions: "Döviz İşlemleri",
+    transactionHistory: "İşlem Geçmişi",     
     history: "İşlem Geçmişi",
     reports: "Raporlar",
     users: "Kullanıcılar",
     settings: "Ayarlar"
   };
 
-
-
-
   const pageTitle = titles[activeTab] || "Dashboard";
-
   
   return (
     <header className={styles.header}>
