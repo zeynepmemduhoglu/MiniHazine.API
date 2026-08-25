@@ -8,6 +8,7 @@ import DashboardHome from './pages/DashboardHome';
 import ExchangeRates from './pages/ExchangeRates';
 import ExchangeTransactions from './pages/ExchangeTransactions'; 
 import TransactionHistory from './pages/TransactionHistory'; 
+import Reports from './pages/Reports'; 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -33,9 +34,8 @@ function App() {
             {activeTab === 'accounts' && <Accounts />}
             {activeTab === 'exchangeRates' && <ExchangeRates />}
             {(activeTab === 'exchangeTransactions' || activeTab === 'transactions' || activeTab === 'exchange-transactions') && <ExchangeTransactions />} 
-            
-            
             {activeTab === 'transactionHistory' && <TransactionHistory />}
+            {activeTab === 'reports' && <Reports />} 
           </div>
 
         </div>
