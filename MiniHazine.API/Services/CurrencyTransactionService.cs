@@ -16,20 +16,17 @@ namespace MiniHazine.API.Services
 		public async Task<List<DTOCurrencyTransactionDto>> GetTransactionsAsync()
 		{
 			var result = await _context.CurrencyTransactions
-				//.Include(t => t.Account)
-				////.ThenInclude(a => a.Customer)
-				////.Include(t => t.Currency)
+			
 				.OrderByDescending(t => t.TransactionDate)
-				.Select(t => new DTOCurrencyTransactionDto
+				.Select(t => new DTOCurrencyTransactionDto  
 				{
-
 					Id = t.Id,
 					TransactionType = t.TransactionType,
 					Amount = t.Amount,
 					TotalRate = t.TotalRate,
 					TransactionDate = t.TransactionDate,
 					AccountId = t.AccountId,
-					Account = t.Account,
+					Account = t.Account, 
 					AccountType = t.Account != null ? t.Account.AccountName : "Bilinmeyen Hesap",
 					CustomerName = t.Account != null && t.Account.Customer != null
 						? $"{t.Account.Customer.FirstName} {t.Account.Customer.LastName}"
