@@ -14,19 +14,28 @@ namespace MiniHazine.API.Controllers
 			_reportService = reportService;
 		}
 
+		
 		[HttpGet("summary")]
 		public async Task<IActionResult> GetSummary()
 		{
-			var summary = await _reportService.GetReportSummaryAsync();
-			return Ok(summary);
+			var result = await _reportService.GetReportSummaryAsync();
+			return Ok(result);
 		}
 
 		
 		[HttpGet("currency-distribution")]
 		public async Task<IActionResult> GetCurrencyDistribution()
 		{
-			var distribution = await _reportService.GetCurrencyDistributionAsync();
-			return Ok(distribution);
+			var result = await _reportService.GetCurrencyDistributionAsync();
+			return Ok(result);
+		}
+
+		
+		[HttpGet("customer-transactions")]
+		public async Task<IActionResult> GetCustomerTransactions()
+		{
+			var result = await _reportService.GetCustomerTransactionReportAsync();
+			return Ok(result);
 		}
 	}
 }

@@ -114,13 +114,13 @@ export default function ExchangeTransactions() {
     setLoading(false);
   };
 
-  // Döviz çiftini (örn: USD/TRY) bozmadan, sadece parantezli fiyat kalabalığını temizleyen fonksiyon
+  
   const getRateDetails = (rate) => {
     if (!rate) return { id: '', code: '', buy: 0, sell: 0 };
     const id = rate.id || rate.Id || rate.currencyId || rate.CurrencyId;
     
     let rawCode = rate.pair || rate.Pair || rate.currencyCode || rate.CurrencyCode || rate.code || rate.Code || 'Döviz';
-    const code = String(rawCode).split('(')[0].trim(); // Sadece parantez sonrasını atar, USD/TRY gibi çiftler aynen kalır
+    const code = String(rawCode).split('(')[0].trim(); 
 
     const buy = rate.buyRate ?? rate.BuyRate ?? rate.buy ?? rate.Buy ?? 0;
     const sell = rate.sellRate ?? rate.SellRate ?? rate.sell ?? rate.Sell ?? 0;
@@ -158,7 +158,7 @@ export default function ExchangeTransactions() {
 
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         
-        {/* SOL TARAF: FORM */}
+       
         <div style={{ flex: '2', minWidth: '350px', backgroundColor: '#FFFFFF', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
           <form style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
@@ -277,7 +277,7 @@ export default function ExchangeTransactions() {
           </form>
         </div>
 
-        {/* SAĞ TARAF: CANLI İŞLEM ÖZETİ PANOSU */}
+        
         <div style={{ flex: '1', minWidth: '280px', backgroundColor: '#F8FAFC', padding: '2rem', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.2rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '0.5rem' }}>İşlem Özeti</h3>
           

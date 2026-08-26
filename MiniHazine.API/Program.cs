@@ -12,7 +12,12 @@ builder.Services.AddCors(options =>
 						.AllowAnyHeader());
 });
 
-builder.Services.AddControllers();
+
+builder.Services.AddControllers()
+	.AddJsonOptions(options =>
+	{
+		options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+	});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -21,7 +26,7 @@ builder.Services.AddScoped<CurrencyTransactionService>();
 builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<CustomerService>();
-builder.Services.AddScoped<ReportService>(); 
+builder.Services.AddScoped<ReportService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

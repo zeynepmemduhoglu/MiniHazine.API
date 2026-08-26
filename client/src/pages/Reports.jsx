@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 export default function Reports() {
   const [summary, setSummary] = useState(null);
   const [currencyDistribution, setCurrencyDistribution] = useState([]);
+  const [customerReports, setCustomerReports] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,8 +19,7 @@ export default function Reports() {
         const summaryData = await summaryRes.json();
         setSummary(summaryData);
 
-
-
+        
         const distRes = await fetch('https://localhost:7258/api/reports/currency-distribution');
         if (!distRes.ok) {
           const errText = await distRes.text();
@@ -28,7 +28,14 @@ export default function Reports() {
         const distData = await distRes.json();
         setCurrencyDistribution(distData);
 
-
+        
+        const customerRes = await fetch('https://localhost:7258/api/reports/customer-transactions');
+        if (!customerRes.ok) {
+          const errText = await customerRes.text();
+          throw new Error(`Müşteri Raporu Hatası: ${errText || customerRes.statusText}`);
+        }
+        const customerData = await customerRes.json();
+        setCustomerReports(customerData);
 
       } catch (err) {
         console.error(err);
@@ -41,13 +48,10 @@ export default function Reports() {
     fetchReportData();
   }, []);
 
-
-
   if (loading) {
     return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748B', fontWeight: '500' }}>Raporlar yükleniyor...</div>;
   }
 
-  
   if (error) {
     return (
       <div style={{ padding: '2rem', color: '#DC2626', fontWeight: '500', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', margin: '2rem' }}>
@@ -55,8 +59,6 @@ export default function Reports() {
       </div>
     );
   }
-
-
 
   return (
     <div style={{ padding: '2rem', width: '100%', boxSizing: 'border-box' }}>
@@ -69,9 +71,8 @@ export default function Reports() {
         </p>
       </div>
 
-     
+      
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        
         <div style={{ backgroundColor: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
           <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block', marginBottom: '0.5rem' }}>Toplam Müşteri Sayısı</span>
           <h3 style={{ fontSize: '1.8rem', color: '#0F172A', margin: 0 }}>{summary?.totalCustomers ?? 0}</h3>
@@ -107,11 +108,10 @@ export default function Reports() {
             {summary?.totalSellVolume ? summary.totalSellVolume.toLocaleString('tr-TR') : '0'}
           </h3>
         </div>
-
       </div>
 
-
-      <div style={{ marginBottom: '1.5rem' }}>
+      
+      <div style={{ marginBottom: '2.5rem' }}>
         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1E293B', marginBottom: '1rem' }}>
           Döviz Cinsine Göre Bakiye ve Hesap Dağılımı
         </h3>
@@ -136,6 +136,50 @@ export default function Reports() {
           ) : (
             <div style={{ color: '#64748B', fontSize: '0.95rem' }}>Henüz döviz dağılımı verisi bulunmuyor.</div>
           )}
+        </div>
+      </div>
+
+      
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1E293B', marginBottom: '1rem' }}>
+          Müşteri Bazlı İşlem ve Hesap Raporu
+        </h3>
+
+        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontSize: '0.85rem' }}>
+                <th style={{ padding: '1rem' }}>Müşteri Adı</th>
+                <th style={{ padding: '1rem', textAlign: 'center' }}>Hesap Sayısı</th>
+                <th style={{ padding: '1rem', textAlign: 'center' }}>İşlem Adedi</th>
+                <th style={{ padding: '1rem', textAlign: 'right' }}>Toplam Alış (BUY)</th>
+                <th style={{ padding: '1rem', textAlign: 'right' }}>Toplam Satış (SELL)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customerReports.length > 0 ? (
+                customerReports.map((cust, index) => (
+                  <tr key={index} style={{ borderBottom: index !== customerReports.length - 1 ? '1px solid #F1F5F9' : 'none', fontSize: '0.9rem', color: '#1E293B' }}>
+                    <td style={{ padding: '1rem', fontWeight: '600' }}>{cust.customerName}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>{cust.totalAccountCount}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>{cust.totalTransactionCount}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right', color: '#10B981', fontWeight: '600' }}>
+                      {cust.totalBuyAmount.toLocaleString('tr-TR')}
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right', color: '#EF4444', fontWeight: '600' }}>
+                      {cust.totalSellAmount.toLocaleString('tr-TR')}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
+                    Listelenecek müşteri raporu verisi bulunmuyor.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

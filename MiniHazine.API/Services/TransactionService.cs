@@ -22,7 +22,7 @@ namespace MiniHazine.API.Services
 			{
 				account.Balance += amount; 
 			}
-			else if (transactionType == "SELL")
+			else if (transactionType == "SELL") 
 			{
 				if (account.Balance < amount) return false; 
 				account.Balance -= amount; 

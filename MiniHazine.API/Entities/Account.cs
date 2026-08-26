@@ -1,4 +1,7 @@
-﻿namespace MiniHazine.API.Entities
+﻿using System;
+using System.Collections.Generic;
+
+namespace MiniHazine.API.Entities
 {
 	public class Account
 	{
@@ -6,7 +9,6 @@
 		public int CustomerId { get; set; }
 		public int CurrencyId { get; set; }
 
-		
 		public Customer Customer { get; set; }
 		public Currency Currency { get; set; }
 
@@ -14,5 +16,8 @@
 		public string AccountNumber { get; set; } = string.Empty;
 		public decimal Balance { get; set; }
 		public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
+		
+		public ICollection<CurrencyTransaction> CurrencyTransactions { get; set; }
 	}
 }
