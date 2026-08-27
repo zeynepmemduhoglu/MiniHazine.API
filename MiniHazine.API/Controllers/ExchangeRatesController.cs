@@ -2,135 +2,142 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MiniHazine.API.Entities;
-using System.Text.Json;
+using System.Globalization;
+using System.Xml.Linq;
 
 namespace MiniHazine.API.Controllers
 {
-	[Route("api/exchange-rates")]
-	[ApiController]
-	public class ExchangeRatesController : ControllerBase
-	{
-		private readonly AppDbContext _context;
-		private readonly IConfiguration _configuration;
+    [Route("api/exchange-rates")]
+    [ApiController]
+    public class ExchangeRatesController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-		public ExchangeRatesController(AppDbContext context, IConfiguration configuration)
-		{
-			_context = context;
-			_configuration = configuration;
-		}
+        public ExchangeRatesController(AppDbContext context, IConfiguration configuration)
+        {
+            _context = context;
+            _configuration = configuration;
+        }
 
-		[HttpGet]
-		public async Task<IActionResult> GetExchangeRates()
-		{
-			var rates = await _context.ExchangeRates.ToListAsync();
-			return Ok(rates);
-		}
+        [HttpGet]
+        public async Task<IActionResult> GetExchangeRates()
+        {
+            var rates = await _context.ExchangeRates.ToListAsync();
+            return Ok(rates);
+        }
 
-		[HttpPost]
-		public async Task<IActionResult> CreateExchangeRate([FromBody] ExchangeRate exchangeRate)
-		{
-			if (exchangeRate == null)
-			{
-				return BadRequest("Gönderilen veriler boş olamaz.");
-			}
+        [HttpPost]
+        public async Task<IActionResult> CreateExchangeRate([FromBody] ExchangeRate exchangeRate)
+        {
+            if (exchangeRate == null)
+            {
+                return BadRequest("Gönderilen veriler boş olamaz.");
+            }
 
-			exchangeRate.UpdatedDate = DateTime.UtcNow;
+            exchangeRate.UpdatedDate = DateTime.UtcNow;
 
-			_context.ExchangeRates.Add(exchangeRate);
-			await _context.SaveChangesAsync();
+            _context.ExchangeRates.Add(exchangeRate);
+            await _context.SaveChangesAsync();
 
-			return Ok(exchangeRate);
-		}
+            return Ok(exchangeRate);
+        }
 
-		[HttpPost("fetch-live")]
-		public async Task<IActionResult> FetchAndSaveLiveRates()
-		{
-			try
-			{
-				using var client = new HttpClient();
+        [HttpPost("fetch-live")]
+        public async Task<IActionResult> FetchAndSaveLiveRates()
+        {
+            try
+            {
+                using var client = new HttpClient();
+                
+                
+                string url = "https://www.tcmb.gov.tr/kurlar/today.xml";
 
-				string url = _configuration["ApiSettings:FrankfurterUrl"];
+                var xmlString = await client.GetStringAsync(url);
+                var xmlDoc = XDocument.Parse(xmlString);
 
-				if (string.IsNullOrEmpty(url))
-				{
-					return BadRequest("Hata: Dış servis URL konfigürasyonu bulunamadı.");
-				}
+                
+                var currencyElements = xmlDoc.Descendants("Currency");
 
-				var response = await client.GetAsync(url);
-				if (!response.IsSuccessStatusCode)
-				{
-					return BadRequest("Dış API'den kurlar alınamadı.");
-				}
+                foreach (var item in currencyElements)
+                {
+                    string code = item.Attribute("Kod")?.Value;
+                    if (string.IsNullOrEmpty(code)) continue;
 
-				var jsonString = await response.Content.ReadAsStringAsync();
+                    
+                    int unit = 1;
+                    if (int.TryParse(item.Element("Unit")?.Value, out var u))
+                    {
+                        unit = u;
+                    }
 
-				using var doc = JsonDocument.Parse(jsonString);
-				var root = doc.RootElement;
-				var ratesElement = root.GetProperty("rates");
+                    string buyStr = item.Element("ForexBuying")?.Value;
+                    string sellStr = item.Element("ForexSelling")?.Value;
 
-				string[] currencies = { "TRY", "EUR", "GBP", "JPY", "CAD", "CHF", "AUD", "RUB", "SEK" };
+                    
+                    if (!string.IsNullOrEmpty(buyStr) && !string.IsNullOrEmpty(sellStr) &&
+                        decimal.TryParse(buyStr, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal buyRaw) &&
+                        decimal.TryParse(sellStr, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal sellRaw))
+                    {
+                        
+                        decimal buyRate = buyRaw / unit;
+                        decimal sellRate = sellRaw / unit;
 
-				foreach (var currency in currencies)
-				{
-					if (ratesElement.TryGetProperty(currency, out var rateElement))
-					{
-						decimal rate = rateElement.GetDecimal();
-						string pair = $"USD/{currency}";
+                        string pair = $"{code}/TRY";
 
-						decimal buyRate = rate;
-						decimal sellRate = rate * 1.01m;
+                        
+                        int currencyId = code switch
+                        {
+                            "USD" => 1,
+                            "EUR" => 3,
+                            "GBP" => 4,
+                            "JPY" => 5,
+                            "CAD" => 6,
+                            "CHF" => 7,
+                            "AUD" => 8,
+                            "SEK" => 10,
+                            _ => 0
+                        };
 
-						int currencyId = currency switch
-						{
-							"TRY" => 2,
-							"EUR" => 3,
-							"GBP" => 4,
-							"JPY" => 5,
-							"CAD" => 6,
-							"CHF" => 7,
-							"AUD" => 8,
-							"RUB" => 9,
-							"SEK" => 10,
-							_ => 1
-						};
+                        if (currencyId == 0) continue; 
 
-						var existingRate = await _context.ExchangeRates.FirstOrDefaultAsync(x => x.Pair == pair);
+                        var existingRate = await _context.ExchangeRates.FirstOrDefaultAsync(x => x.Pair == pair);
 
-						if (existingRate != null)
-						{
-							existingRate.BuyRate = buyRate;
-							existingRate.SellRate = sellRate;
-							existingRate.UpdatedDate = DateTime.Now;
-						}
-						else
-						{
-							_context.ExchangeRates.Add(new ExchangeRate
-							{
-								CurrencyId = currencyId,
-								Pair = pair,
-								BuyRate = buyRate,
-								SellRate = sellRate,
-								UpdatedDate = DateTime.UtcNow
-							});
-						}
-					}
-				}
+                        if (existingRate != null)
+                        {
+                            existingRate.BuyRate = buyRate;
+                            existingRate.SellRate = sellRate;
+                            existingRate.UpdatedDate = DateTime.Now;
+                        }
+                        else
+                        {
+                            _context.ExchangeRates.Add(new ExchangeRate
+                            {
+                                CurrencyId = currencyId,
+                                Pair = pair,
+                                BuyRate = buyRate,
+                                SellRate = sellRate,
+                                UpdatedDate = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
 
-				await _context.SaveChangesAsync();
-				return Ok(new { Message = "Seçili tüm canlı kurlar başarıyla güncellendi!" });
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, $"Bir hata oluştu: {ex.Message}");
-			}
-		}
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "TCMB canlı kurları başarıyla güncellendi!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"TCMB kurları çekilirken bir hata oluştu: {ex.Message}");
+            }
+        }
 
-		[HttpDelete("clear-all")]
-		public async Task<IActionResult> ClearAllRates()
-		{
-			_context.ExchangeRates.RemoveRange(_context.ExchangeRates);
-			await _context.SaveChangesAsync();
-			return Ok(new { Message = "Tablodaki tüm eski veriler başarıyla temizlendi!" });
-		}
-	}
+        [HttpDelete("clear-all")]
+        public async Task<IActionResult> ClearAllRates()
+        {
+            _context.ExchangeRates.RemoveRange(_context.ExchangeRates);
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Tablodaki tüm eski veriler başarıyla temizlendi!" });
+        }
+    }
 }
