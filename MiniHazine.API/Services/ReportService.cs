@@ -115,7 +115,7 @@ namespace MiniHazine.API.Services
 			return reportList;
 		}
 
-		
+
 		public async Task<List<DateRangeReportResponseDto>> GetTransactionsByDateRangeAsync(DateRangeReportRequestDto request)
 		{
 			var query = _context.CurrencyTransactions
@@ -127,9 +127,13 @@ namespace MiniHazine.API.Services
 			query = query.Where(t => t.TransactionDate >= request.StartDate && t.TransactionDate <= request.EndDate);
 
 			
-			if (request.AccountId.HasValue)
+			if (!string.IsNullOrEmpty(request.CustomerName))
 			{
-				query = query.Where(t => t.AccountId == request.AccountId.Value);
+				query = query.Where(t =>
+					t.Account != null &&
+					t.Account.Customer != null &&
+					(t.Account.Customer.FirstName + " " + t.Account.Customer.LastName).Contains(request.CustomerName)
+				);
 			}
 
 			var result = await query
@@ -139,8 +143,11 @@ namespace MiniHazine.API.Services
 					TransactionDate = t.TransactionDate,
 					Amount = t.Amount,
 					TotalRate = t.TotalRate,
-					AccountNumber = t.Account.AccountNumber,
-					CurrencyCode = t.Account.Currency.Code
+					AccountNumber = t.Account != null ? t.Account.AccountNumber : "Bilinmeyen",
+					CurrencyCode = t.Account != null && t.Account.Currency != null ? t.Account.Currency.Code : "Bilinmeyen",
+					CustomerName = t.Account != null && t.Account.Customer != null
+						? $"{t.Account.Customer.FirstName} {t.Account.Customer.LastName}"
+						: "Bilinmeyen Müşteri"
 				})
 				.ToListAsync();
 

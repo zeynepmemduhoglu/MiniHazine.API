@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MiniHazine.API.DTOs;
 using MiniHazine.API.Services;
 
 namespace MiniHazine.API.Controllers
@@ -14,7 +15,7 @@ namespace MiniHazine.API.Controllers
 			_reportService = reportService;
 		}
 
-		
+
 		[HttpGet("summary")]
 		public async Task<IActionResult> GetSummary()
 		{
@@ -22,7 +23,7 @@ namespace MiniHazine.API.Controllers
 			return Ok(result);
 		}
 
-		
+
 		[HttpGet("currency-distribution")]
 		public async Task<IActionResult> GetCurrencyDistribution()
 		{
@@ -30,11 +31,19 @@ namespace MiniHazine.API.Controllers
 			return Ok(result);
 		}
 
-		
+
 		[HttpGet("customer-transactions")]
 		public async Task<IActionResult> GetCustomerTransactions()
 		{
 			var result = await _reportService.GetCustomerTransactionReportAsync();
+			return Ok(result);
+		}
+
+
+		[HttpGet("date-range")]
+		public async Task<IActionResult> GetTransactionsByDateRange([FromQuery] DateRangeReportRequestDto request)
+		{
+			var result = await _reportService.GetTransactionsByDateRangeAsync(request);
 			return Ok(result);
 		}
 	}
