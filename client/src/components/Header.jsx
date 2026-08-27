@@ -10,10 +10,12 @@ const Header = ({ activeTab }) => {
     exchangeRates: "Döviz Kurları",
     exchangeTransactions: "Döviz İşlemleri", 
     transactions: "Döviz İşlemleri",
-    transactionHistory: "İşlem Geçmişi",     
+    "exchange-transactions": "Döviz İşlemleri", 
+    transactionHistory: "İşlem Geçmişi",    
     history: "İşlem Geçmişi",
     reports: "Raporlar",
     users: "Kullanıcılar",
+    kullanicilar: "Kullanıcılar", 
     settings: "Ayarlar"
   };
 

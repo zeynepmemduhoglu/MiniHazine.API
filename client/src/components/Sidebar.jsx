@@ -76,7 +76,6 @@ const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
           İşlem Geçmişi
         </a>
 
-        
         <a 
           href="#reports" 
           onClick={(e) => { e.preventDefault(); setActiveTab('reports'); }} 
@@ -86,7 +85,12 @@ const Sidebar = ({ onLogout, activeTab, setActiveTab }) => {
           Raporlar
         </a>
 
-        <a href="#users" onClick={(e) => e.preventDefault()} className={styles.navItem}>
+        
+        <a 
+          href="#users" 
+          onClick={(e) => { e.preventDefault(); setActiveTab('users'); }} 
+          className={`${styles.navItem} ${activeTab === 'users' ? styles.active : ''}`}
+        >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Kullanıcılar
         </a>
