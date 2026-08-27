@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace MiniHazine.API.Entities
 {
@@ -17,7 +18,7 @@ namespace MiniHazine.API.Entities
 		public decimal Balance { get; set; }
 		public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-		
+		//[JsonIgnore]
 		public ICollection<CurrencyTransaction> CurrencyTransactions { get; set; }
 	}
 }

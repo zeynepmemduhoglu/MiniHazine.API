@@ -51,7 +51,7 @@ namespace MiniHazine.API.Controllers
 		}
 
 		[HttpPost("sell")]
-		public async Task<IActionResult> SellCurrency([FromBody] DTOCurrencyTransactionRequest request)
+		public async Task<IActionResult> SellCurrency([FromBody] DTOCurrencyTransactionRequest request)  // dto döndür
 		{
 			_logger.LogInformation("Sell isteği alındı -> CustomerId: {CustomerId}, AccountId: {AccountId}, CurrencyId: {CurrencyId}, Amount: {Amount}",
 				request?.CustomerId, request?.AccountId, request?.CurrencyId, request?.Amount);

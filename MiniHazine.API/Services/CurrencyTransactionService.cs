@@ -16,9 +16,8 @@ namespace MiniHazine.API.Services
 		public async Task<List<DTOCurrencyTransactionDto>> GetTransactionsAsync()
 		{
 			var result = await _context.CurrencyTransactions
-			
 				.OrderByDescending(t => t.TransactionDate)
-				.Select(t => new DTOCurrencyTransactionDto  
+				.Select(t => new DTOCurrencyTransactionDto
 				{
 					Id = t.Id,
 					TransactionType = t.TransactionType,
@@ -26,7 +25,7 @@ namespace MiniHazine.API.Services
 					TotalRate = t.TotalRate,
 					TransactionDate = t.TransactionDate,
 					AccountId = t.AccountId,
-					Account = t.Account, 
+					Account = t.Account,
 					AccountType = t.Account != null ? t.Account.AccountName : "Bilinmeyen Hesap",
 					CustomerName = t.Account != null && t.Account.Customer != null
 						? $"{t.Account.Customer.FirstName} {t.Account.Customer.LastName}"
@@ -34,9 +33,6 @@ namespace MiniHazine.API.Services
 					CurrencyCode = t.Currency != null ? t.Currency.Code : ""
 				})
 				.ToListAsync();
-
-
-
 
 			return result;
 		}
@@ -59,7 +55,12 @@ namespace MiniHazine.API.Services
 
 			decimal totalCost = request.Amount * exchangeRate.BuyRate;
 
-			account.Balance += request.Amount;
+			if (account.Balance < totalCost)
+			{
+				return (false, "Hata: Hesabınızda bu işlemi yapacak yeterli bakiye bulunamadı!", null);
+			}
+
+			account.Balance -= totalCost;
 
 			var buyTransaction = new CurrencyTransaction
 			{
@@ -88,18 +89,15 @@ namespace MiniHazine.API.Services
 
 			request.CustomerId = account.CustomerId;
 
-			if (account.Balance < request.Amount)
-			{
-				return (false, "Hata: Hesabınızda bu işlemi yapacak yeterli bakiye bulunamadı!", null);
-			}
-
 			var exchangeRate = await _context.ExchangeRates.FindAsync(request.CurrencyId);
 			if (exchangeRate == null)
 			{
 				return (false, "Hata: Geçersiz döviz kuru seçimi!", null);
 			}
 
-			account.Balance -= request.Amount;
+			decimal totalRevenue = request.Amount * exchangeRate.SellRate;
+
+			account.Balance += totalRevenue;
 
 			var sellTransaction = new CurrencyTransaction
 			{
