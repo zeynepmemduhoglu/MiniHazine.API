@@ -39,6 +39,11 @@ namespace MiniHazine.API.Services
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
+			if (request.Amount <= 0)
+			{
+				return (false, "Hata: İşlem miktarı 0'dan büyük olmalıdır!", null);
+			}
+
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
 			if (account == null)
 			{
@@ -53,7 +58,7 @@ namespace MiniHazine.API.Services
 				return (false, "Hata: Geçersiz döviz kuru seçimi!", null);
 			}
 
-			decimal totalCost = request.Amount * exchangeRate.BuyRate;
+			decimal totalCost = request.Amount * exchangeRate.SellRate;
 
 			if (account.Balance < totalCost)
 			{
@@ -68,7 +73,7 @@ namespace MiniHazine.API.Services
 				AccountId = request.AccountId,
 				CurrencyId = exchangeRate.CurrencyId,
 				Amount = request.Amount,
-				TotalRate = exchangeRate.BuyRate,
+				TotalRate = exchangeRate.SellRate,
 				TransactionType = "BUY",
 				TransactionDate = DateTime.UtcNow,
 			};
@@ -81,6 +86,11 @@ namespace MiniHazine.API.Services
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
+			if (request.Amount <= 0)
+			{
+				return (false, "Hata: İşlem miktarı 0'dan büyük olmalıdır!", null);
+			}
+
 			var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
 			if (account == null)
 			{
@@ -95,7 +105,23 @@ namespace MiniHazine.API.Services
 				return (false, "Hata: Geçersiz döviz kuru seçimi!", null);
 			}
 
-			decimal totalRevenue = request.Amount * exchangeRate.SellRate;
+			
+			var totalBought = await _context.CurrencyTransactions
+				.Where(t => t.AccountId == request.AccountId && t.CurrencyId == exchangeRate.CurrencyId && t.TransactionType == "BUY")
+				.SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+			var totalSold = await _context.CurrencyTransactions
+				.Where(t => t.AccountId == request.AccountId && t.CurrencyId == exchangeRate.CurrencyId && t.TransactionType == "SELL")
+				.SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+			decimal currentCurrencyBalance = totalBought - totalSold;
+
+			if (request.Amount > currentCurrencyBalance)
+			{
+				return (false, "Hata: Hesabınızda satmak istediğiniz miktarda bu dövizden bulunmamaktadır!", null);
+			}
+
+			decimal totalRevenue = request.Amount * exchangeRate.BuyRate;
 
 			account.Balance += totalRevenue;
 
@@ -105,7 +131,7 @@ namespace MiniHazine.API.Services
 				AccountId = request.AccountId,
 				CurrencyId = exchangeRate.CurrencyId,
 				Amount = request.Amount,
-				TotalRate = exchangeRate.SellRate,
+				TotalRate = exchangeRate.BuyRate,
 				TransactionType = "SELL",
 				TransactionDate = DateTime.UtcNow
 			};

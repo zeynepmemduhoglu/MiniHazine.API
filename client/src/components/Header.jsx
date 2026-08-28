@@ -16,7 +16,8 @@ const Header = ({ activeTab }) => {
     reports: "Raporlar",
     users: "Kullanıcılar",
     kullanicilar: "Kullanıcılar", 
-    settings: "Ayarlar"
+    settings: "Ayarlar",
+    ayarlar: "Ayarlar"
   };
 
   const pageTitle = titles[activeTab] || "Dashboard";

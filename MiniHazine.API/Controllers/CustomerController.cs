@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniHazine.API.DTOs;
 using MiniHazine.API.Entities;
+using MiniHazine.API.Services;
 
 namespace MiniHazine.API.Controllers
 {
@@ -9,53 +10,40 @@ namespace MiniHazine.API.Controllers
 	[ApiController]
 	public class CustomersController : ControllerBase
 	{
+		private readonly CustomerService _customerService;
 		private readonly AppDbContext _context;
 
-		public CustomersController(AppDbContext context)
+		public CustomersController(CustomerService customerService, AppDbContext context)
 		{
+			_customerService = customerService;
 			_context = context;
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> GetCustomers()
 		{
-			var customers = await _context.Customers
-				.Select(c => new DTOCustomer
-				{
-					CustomerId = c.Id,
-					FirstName = c.FirstName,
-					LastName = c.LastName,
-					Email = c.Email,
-					IdentityNumber = c.IdentityNumber,
-					PhoneNumber = c.PhoneNumber
-				})
-				.ToListAsync();
-
+			var customers = await _customerService.GetCustomersAsync();
 			return Ok(customers);
 		}
 
 		[HttpPost]
 		public async Task<IActionResult> CreateCustomer([FromBody] DTOCustomer request)
 		{
-			var customer = new Customer
+			try
 			{
-				FirstName = request.FirstName,
-				LastName = request.LastName,
-				Email = request.Email,
-				IdentityNumber = request.IdentityNumber,
-				PhoneNumber = request.PhoneNumber,
-				IsActive = true
-			};
-
-			_context.Customers.Add(customer);
-			await _context.SaveChangesAsync();
-
-			request.CustomerId = customer.Id;
-
-			return Ok(new { Message = "Müşteri başarıyla oluşturuldu.", Customer = request });
+				var createdCustomer = await _customerService.CreateCustomerAsync(request);
+				return Ok(new { Message = "Müşteri başarıyla oluşturuldu.", Customer = createdCustomer });
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+			catch (InvalidOperationException ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
 		}
 
-		
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteCustomer(int id)
 		{
@@ -71,7 +59,6 @@ namespace MiniHazine.API.Controllers
 			return Ok(new { Message = "Müşteri başarıyla silindi." });
 		}
 
-		
 		[HttpPut("{id}")]
 		public async Task<IActionResult> UpdateCustomer(int id, [FromBody] DTOCustomer request)
 		{

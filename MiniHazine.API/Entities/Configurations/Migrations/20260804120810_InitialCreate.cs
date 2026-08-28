@@ -62,8 +62,8 @@ namespace MiniHazine.API.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BuyingRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SellingRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    BuyingRate = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    SellingRate = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CurrencyId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -85,7 +85,7 @@ namespace MiniHazine.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AccountNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Balance = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CustomerId = table.Column<int>(type: "int", nullable: false),
                     CurrencyId = table.Column<int>(type: "int", nullable: false)
@@ -115,7 +115,7 @@ namespace MiniHazine.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TransactionNo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TransactionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CustomerId = table.Column<int>(type: "int", nullable: false),
                     CurrencyId = table.Column<int>(type: "int", nullable: false)

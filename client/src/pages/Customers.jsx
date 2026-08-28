@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Customers.module.css';
 
-
 const Customers = () => {
   const [customers, setCustomers] = useState([]); 
-
   const [loading, setLoading] = useState(true); 
-
   const [isModalOpen, setIsModalOpen] = useState(false); 
-
   const [isEditMode, setIsEditMode] = useState(false); 
   const [editingId, setEditingId] = useState(null); 
-
   const [isSubmitting, setIsSubmitting] = useState(false); 
   
-
   const [formData, setFormData] = useState({ 
     firstName: '', 
     lastName: '', 
@@ -23,13 +17,11 @@ const Customers = () => {
     phoneNumber: '' 
   }); 
 
-  
   const fetchCustomers = async () => {
     try {
       const response = await fetch('https://localhost:7258/api/customers');
       if (response.ok) {
         const data = await response.json();
-        console.log("Backend'den gelen müşteriler:", data); // ID ismini buradan kontrol edebilirsin
         setCustomers(data); 
       }
     } catch (error) {
@@ -43,10 +35,8 @@ const Customers = () => {
     fetchCustomers();
   }, []);
 
-  // Silme Fonksiyonu
   const handleDelete = async (customer) => {
     const id = customer.customerId || customer.Id || customer.id;
-    console.log("Silinmek istenen Müşteri ID:", id);
 
     if (!id) {
       alert('Müşteri ID bulunamadı!');
@@ -70,10 +60,8 @@ const Customers = () => {
     }
   };
 
-  // Düzenleme Modunu Açma
   const handleOpenEditModal = (customer) => {
     const id = customer.customerId || customer.Id || customer.id;
-    console.log("Düzenlenecek Müşteri ID:", id);
 
     setIsEditMode(true);
     setEditingId(id);
@@ -94,7 +82,6 @@ const Customers = () => {
     setIsModalOpen(true);
   };
 
-  // Kaydet / Güncelle Form Gönderimi
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -103,6 +90,12 @@ const Customers = () => {
     const trimmedIdentity = formData.identityNumber.trim();
     if (trimmedIdentity.length !== 11) {
       alert('TC Kimlik Numarası 11 haneli olmalıdır.');
+      return;
+    }
+
+    const trimmedPhone = formData.phoneNumber.trim();
+    if (trimmedPhone.length !== 10 && trimmedPhone.length !== 11) {
+      alert('Telefon numarası 10 veya 11 hane olmalıdır.');
       return;
     }
 
@@ -117,23 +110,30 @@ const Customers = () => {
         method = 'PUT'; 
       }
 
-      console.log("Gönderilen URL:", url, "Method:", method, "Data:", formData);
-
       const response = await fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
+      let errorData = null;
+      try {
+        errorData = await response.json();
+      } catch {
+        
+      }
+
       if (response.ok) {
         setIsModalOpen(false); 
         setFormData({ firstName: '', lastName: '', email: '', identityNumber: '', phoneNumber: '' }); 
         fetchCustomers(); 
       } else {
-        alert(isEditMode ? 'Müşteri güncellenirken bir hata oluştu.' : 'Müşteri eklenirken bir hata oluştu.');
+        const errorMessage = errorData?.message || (isEditMode ? 'Müşteri güncellenirken bir hata oluştu.' : 'Müşteri eklenirken bir hata oluştu.');
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('Hata:', error);
+      alert('Sunucuya bağlanırken bir hata oluştu.');
     } finally {
       setIsSubmitting(false); 
     }
@@ -141,7 +141,6 @@ const Customers = () => {
 
   return (
     <div className={styles.customersPage}>
-      
       <div className={styles.pageHeader}>
         <div>
           <h2 className={styles.pageTitle}>Müşteri Yönetimi</h2>
@@ -154,7 +153,6 @@ const Customers = () => {
       </div>
 
       <div className={styles.contentCard}>
-        
         <div className={styles.tableToolbar}>
           <input 
             type="text" 
@@ -232,7 +230,6 @@ const Customers = () => {
             </tbody>
           </table>
         )}
-
       </div>
 
       {isModalOpen && (
@@ -291,7 +288,6 @@ const Customers = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

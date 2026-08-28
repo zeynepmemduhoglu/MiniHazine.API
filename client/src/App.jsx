@@ -10,6 +10,7 @@ import ExchangeTransactions from './pages/ExchangeTransactions';
 import TransactionHistory from './pages/TransactionHistory'; 
 import Reports from './pages/Reports'; 
 import Users from './pages/Users'; 
+import Settings from './pages/Settings'; 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -38,6 +39,7 @@ function App() {
             {activeTab === 'transactionHistory' && <TransactionHistory />}
             {activeTab === 'reports' && <Reports />} 
             {(activeTab === 'users' || activeTab === 'kullanicilar') && <Users />} 
+            {(activeTab === 'settings' || activeTab === 'ayarlar') && <Settings />} 
           </div>
 
         </div>

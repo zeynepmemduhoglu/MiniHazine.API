@@ -38,7 +38,7 @@ namespace MiniHazine.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
@@ -108,7 +108,7 @@ namespace MiniHazine.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
@@ -181,7 +181,7 @@ namespace MiniHazine.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<decimal>("BuyingRate")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
@@ -190,7 +190,7 @@ namespace MiniHazine.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("SellingRate")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("Id");
 

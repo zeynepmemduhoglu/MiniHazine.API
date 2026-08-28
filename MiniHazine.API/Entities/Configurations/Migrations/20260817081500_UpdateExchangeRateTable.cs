@@ -146,7 +146,7 @@ namespace MiniHazine.API.Migrations
             migrationBuilder.AddColumn<decimal>(
                 name: "TotalRate",
                 table: "CurrencyTransactions",
-                type: "decimal(18,2)",
+                type: "decimal(18,4)",
                 nullable: false,
                 defaultValue: 0m);
 

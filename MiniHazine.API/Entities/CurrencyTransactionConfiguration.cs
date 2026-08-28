@@ -9,11 +9,11 @@ namespace MiniHazine.API.Entities
 		{
 			
 			builder.Property(t => t.Amount)
-				   .HasColumnType("decimal(18,2)");
-
+				   .HasColumnType("decimal(18,4)");
 			
+
 			builder.Property(t => t.TotalRate)
-				   .HasColumnType("decimal(18,2)");
+				   .HasColumnType("decimal(18,4)");
 		}
 	}
 }

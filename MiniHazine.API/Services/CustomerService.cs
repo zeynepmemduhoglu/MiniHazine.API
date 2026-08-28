@@ -13,7 +13,6 @@ namespace MiniHazine.API.Services
 			_context = context;
 		}
 
-		
 		public async Task<IEnumerable<DTOCustomer>> GetCustomersAsync()
 		{
 			return await _context.Customers
@@ -29,16 +28,51 @@ namespace MiniHazine.API.Services
 				.ToListAsync();
 		}
 
-		
+
+		//fluentvalidasyon0
+
 		public async Task<DTOCustomer> CreateCustomerAsync(DTOCustomer request)
 		{
+			var trimmedIdentity = request.IdentityNumber?.Trim();
+			var trimmedPhone = request.PhoneNumber?.Trim();
+
+			
+			if (string.IsNullOrWhiteSpace(trimmedIdentity) || trimmedIdentity.Length != 11)
+			{
+				throw new ArgumentException("TC Kimlik numarasi eksik veya 11 haneden farkli olamaz.");
+			}
+
+			
+			if (string.IsNullOrWhiteSpace(trimmedPhone) || (trimmedPhone.Length != 10 && trimmedPhone.Length != 11))
+			{
+				throw new ArgumentException("Telefon numarasi eksik ya da eksik/fazla haneli olamaz (10 veya 11 hane olmalidir).");
+			}
+
+			
+			var existingCustomerByIdentity = await _context.Customers
+				.FirstOrDefaultAsync(c => c.IdentityNumber == trimmedIdentity);
+
+			if (existingCustomerByIdentity != null)
+			{
+				throw new InvalidOperationException("Bu TC Kimlik numarasina sahip bir musteri zaten sistemde kayitli.");
+			}
+
+			
+			var existingCustomerByPhone = await _context.Customers
+				.FirstOrDefaultAsync(c => c.PhoneNumber == trimmedPhone);
+
+			if (existingCustomerByPhone != null)
+			{
+				throw new InvalidOperationException("Bu telefon numarasina sahip bir musteri zaten sistemde kayitli.");
+			}
+
 			var customer = new Customer
 			{
 				FirstName = request.FirstName,
 				LastName = request.LastName,
 				Email = request.Email,
-				IdentityNumber = request.IdentityNumber,
-				PhoneNumber = request.PhoneNumber,
+				IdentityNumber = trimmedIdentity,
+				PhoneNumber = trimmedPhone,
 				IsActive = true
 			};
 

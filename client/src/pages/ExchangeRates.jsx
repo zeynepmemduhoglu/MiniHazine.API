@@ -57,14 +57,14 @@ export default function ExchangeRates() {
             </tr>
           </thead>
           <tbody>
-            {rates.map((rate) => {
+            {rates.map((rate, index) => {
               const rateId = rate.id || rate.Id;
               const ratePair = rate.pair || rate.Pair;
               const bRate = rate.buyRate !== undefined ? rate.buyRate : rate.BuyRate;
               const sRate = rate.sellRate !== undefined ? rate.sellRate : rate.SellRate;
               
               return (
-                <tr key={rateId} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <tr key={rateId || index} style={{ borderBottom: '1px solid #F1F5F9' }}>
                   <td style={{ padding: '12px', fontWeight: '500', color: '#1E293B' }}>{ratePair}</td>
                   <td style={{ padding: '12px', color: '#10B981' }}>{bRate}</td>
                   <td style={{ padding: '12px', color: '#EF4444' }}>{sRate}</td>

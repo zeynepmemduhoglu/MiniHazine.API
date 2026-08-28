@@ -7,14 +7,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniHazine.API.Entities;
 
-
 #nullable disable
 
 namespace MiniHazine.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260804120810_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260828083258_AddUserSeedData")]
+    partial class AddUserSeedData
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -33,21 +32,23 @@ namespace MiniHazine.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("AccountName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("AccountNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,4)");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -67,16 +68,34 @@ namespace MiniHazine.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Code")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Currencies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "TRY",
+                            Name = "Türk Lirası"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "USD",
+                            Name = "Amerikan Doları"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "EUR",
+                            Name = "Euro"
+                        });
                 });
 
             modelBuilder.Entity("MiniHazine.API.Entities.CurrencyTransaction", b =>
@@ -87,8 +106,11 @@ namespace MiniHazine.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,4)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
@@ -96,18 +118,18 @@ namespace MiniHazine.API.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TotalRate")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("TransactionNo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("TransactionType")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
 
                     b.HasIndex("CurrencyId");
 
@@ -124,27 +146,25 @@ namespace MiniHazine.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("AccountType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IdentityNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -160,21 +180,22 @@ namespace MiniHazine.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<decimal>("BuyingRate")
-                        .HasColumnType("decimal(18,4)");
+                    b.Property<decimal>("BuyRate")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("LastUpdated")
+                    b.Property<string>("Pair")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("SellRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("SellingRate")
-                        .HasColumnType("decimal(18,4)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CurrencyId");
 
                     b.ToTable("ExchangeRates");
                 });
@@ -188,26 +209,32 @@ namespace MiniHazine.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Password = "123456",
+                            Role = "Yönetici",
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("MiniHazine.API.Entities.Account", b =>
                 {
                     b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
-                        .WithMany("Accounts")
+                        .WithMany()
                         .HasForeignKey("CurrencyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -225,6 +252,12 @@ namespace MiniHazine.API.Migrations
 
             modelBuilder.Entity("MiniHazine.API.Entities.CurrencyTransaction", b =>
                 {
+                    b.HasOne("MiniHazine.API.Entities.Account", "Account")
+                        .WithMany("CurrencyTransactions")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
                         .WithMany()
                         .HasForeignKey("CurrencyId")
@@ -237,27 +270,16 @@ namespace MiniHazine.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Account");
+
                     b.Navigation("Currency");
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("MiniHazine.API.Entities.ExchangeRate", b =>
+            modelBuilder.Entity("MiniHazine.API.Entities.Account", b =>
                 {
-                    b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
-                        .WithMany("ExchangeRates")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Currency");
-                });
-
-            modelBuilder.Entity("MiniHazine.API.Entities.Currency", b =>
-                {
-                    b.Navigation("Accounts");
-
-                    b.Navigation("ExchangeRates");
+                    b.Navigation("CurrencyTransactions");
                 });
 
             modelBuilder.Entity("MiniHazine.API.Entities.Customer", b =>

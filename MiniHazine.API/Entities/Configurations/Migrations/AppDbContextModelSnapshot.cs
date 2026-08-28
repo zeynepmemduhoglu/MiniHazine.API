@@ -107,11 +107,8 @@ namespace MiniHazine.API.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AccountId1")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
@@ -120,7 +117,7 @@ namespace MiniHazine.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalRate")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -131,8 +128,6 @@ namespace MiniHazine.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
-
-                    b.HasIndex("AccountId1");
 
                     b.HasIndex("CurrencyId");
 
@@ -203,13 +198,19 @@ namespace MiniHazine.API.Migrations
                     b.ToTable("ExchangeRates");
                 });
 
-            modelBuilder.Entity("MiniHazine.API.Entities.User", b =>
+            modelBuilder.Entity("User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
@@ -223,6 +224,17 @@ namespace MiniHazine.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2026, 8, 28, 11, 30, 23, 683, DateTimeKind.Utc).AddTicks(3523),
+                            IsActive = true,
+                            Password = "123456",
+                            Role = "Yönetici",
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("MiniHazine.API.Entities.Account", b =>
@@ -247,25 +259,21 @@ namespace MiniHazine.API.Migrations
             modelBuilder.Entity("MiniHazine.API.Entities.CurrencyTransaction", b =>
                 {
                     b.HasOne("MiniHazine.API.Entities.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("MiniHazine.API.Entities.Account", null)
                         .WithMany("CurrencyTransactions")
-                        .HasForeignKey("AccountId1");
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MiniHazine.API.Entities.Currency", "Currency")
                         .WithMany()
                         .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MiniHazine.API.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Account");

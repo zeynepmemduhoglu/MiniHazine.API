@@ -20,14 +20,16 @@ namespace MiniHazine.API.Entities
 		{
 			base.OnModelCreating(modelBuilder);
 
-			
 			modelBuilder.Entity<Currency>().HasData(
 				new Currency { Id = 1, Code = "TRY", Name = "Türk Lirası" },
 				new Currency { Id = 2, Code = "USD", Name = "Amerikan Doları" },
 				new Currency { Id = 3, Code = "EUR", Name = "Euro" }
 			);
 
-			
+			modelBuilder.Entity<User>().HasData(
+	            new User { Id = 1, Username = "admin", Password = "123456", Role = "Yönetici" }
+            );
+
 			modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 		}
 	}
