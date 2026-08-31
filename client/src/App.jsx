@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header'; 
 import LoginPage from './pages/LoginPage';
@@ -13,15 +13,24 @@ import Users from './pages/Users';
 import Settings from './pages/Settings'; 
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('userId') !== null;
+  });
+  
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  const handleLogout = () => {
+    localStorage.removeItem('userId'); 
+    setIsLoggedIn(false);
+  };
 
   if (isLoggedIn) {
     return (
       <div style={{ display: 'flex', backgroundColor: '#F8FAFC', minHeight: '100vh', width: '100%' }}>
         
         <Sidebar 
-          onLogout={() => setIsLoggedIn(false)} 
+          onLogout={handleLogout} 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
         />

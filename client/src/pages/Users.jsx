@@ -5,17 +5,16 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Filtreleme State'leri
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('Tümü');
 
-  // Yeni Kullanıcı Form State'leri
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [role, setRole] = useState('Yönetici');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Düzenleme State'leri
   const [editingId, setEditingId] = useState(null);
   const [editUsername, setEditUsername] = useState('');
   const [editRole, setEditRole] = useState('');
@@ -40,21 +39,27 @@ export default function Users() {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    if (!username || !password) return;
+    if (!username || !password || !email) return;
 
     setIsSubmitting(true);
     try {
       const response = await fetch('https://localhost:7258/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role })
+        body: JSON.stringify({ username, password, email, phoneNumber, role })
       });
-      if (!response.ok) throw new Error('Kullanıcı eklenemedi.');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.title || 'Kullanıcı eklenemedi.');
+      }
       
       const newUser = await response.json();
       setUsers([...users, newUser]);
       setUsername('');
       setPassword('');
+      setEmail('');
+      setPhoneNumber('');
       setRole('Yönetici');
     } catch (err) {
       alert(err.message);
@@ -77,7 +82,7 @@ export default function Users() {
   const startEditing = (user) => {
     setEditingId(user.id);
     setEditUsername(user.username);
-    setEditRole(user.role);
+    setEditRole(user.role); 
     setEditIsActive(user.isActive);
   };
 
@@ -88,7 +93,11 @@ export default function Users() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: editUsername, role: editRole, isActive: editIsActive })
       });
-      if (!response.ok) throw new Error('Güncelleme başarısız.');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.title || 'Güncelleme başarısız.');
+      }
       
       const updated = await response.json();
       setUsers(users.map(u => u.id === id ? updated : u));
@@ -98,7 +107,6 @@ export default function Users() {
     }
   };
 
-  // Filtreleme Mantığı
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'Tümü' || user.role === roleFilter;
@@ -116,10 +124,11 @@ export default function Users() {
           <p style={{ color: '#64748B', margin: 0, fontSize: '0.95rem' }}>Personel ve yönetici yetkilendirme paneli.</p>
         </div>
 
-        {/* Ekleme Formu */}
-        <form onSubmit={handleCreateUser} style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#FFF', padding: '0.75rem', borderRadius: '10px', border: '1px solid #E2E8F0', flexWrap: 'wrap' }}>
+        <form onSubmit={handleCreateUser} style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#FFF', padding: '0.75rem', borderRadius: '10px', border: '1px solid #E2E8F0', flexWrap: 'wrap', alignItems: 'center' }}>
           <input type="text" placeholder="Kullanıcı Adı" value={username} onChange={e => setUsername(e.target.value)} required style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }} />
           <input type="password" placeholder="Şifre" value={password} onChange={e => setPassword(e.target.value)} required style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }} />
+          <input type="email" placeholder="E-posta Adresi" value={email} onChange={e => setEmail(e.target.value)} required style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }} />
+          <input type="text" placeholder="Telefon Numarası" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }} />
           <select value={role} onChange={e => setRole(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem', backgroundColor: '#FFF' }}>
             <option value="Yönetici">Yönetici</option>
             <option value="Personel">Personel</option>
@@ -128,7 +137,6 @@ export default function Users() {
         </form>
       </div>
 
-      {/* Arama ve Filtreleme Araç Çubuğu */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         <input 
           type="text" 
@@ -148,7 +156,6 @@ export default function Users() {
         </select>
       </div>
 
-      {/* Tablo */}
       <div style={{ backgroundColor: '#FFF', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
@@ -173,10 +180,14 @@ export default function Users() {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     {editingId === user.id ? (
-                      <select value={editRole} onChange={e => setEditRole(e.target.value)} style={{ padding: '0.3rem', borderRadius: '4px', border: '1px solid #CBD5E1', backgroundColor: '#FFF' }}>
-                        <option value="Yönetici">Yönetici</option>
-                        <option value="Personel">Personel</option>
-                      </select>
+                      user.role === 'Personel' ? (
+                        <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>Personel (Değiştirilemez)</span>
+                      ) : (
+                        <select value={editRole} onChange={e => setEditRole(e.target.value)} style={{ padding: '0.3rem', borderRadius: '4px', border: '1px solid #CBD5E1', backgroundColor: '#FFF' }}>
+                          <option value="Yönetici">Yönetici</option>
+                          <option value="Personel">Personel</option>
+                        </select>
+                      )
                     ) : (
                       <span style={{ backgroundColor: '#EFF6FF', color: '#2563EB', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' }}>{user.role}</span>
                     )}

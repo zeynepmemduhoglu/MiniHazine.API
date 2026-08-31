@@ -123,16 +123,17 @@ namespace MiniHazine.API.Services
 				.ThenInclude(a => a.Customer)
 				.AsQueryable();
 
-			
-			query = query.Where(t => t.TransactionDate >= request.StartDate && t.TransactionDate <= request.EndDate);
 
-			
+			query = query.Where(t => t.TransactionDate.Date >= request.StartDate.Date && t.TransactionDate.Date <= request.EndDate.Date);
+
+
 			if (!string.IsNullOrEmpty(request.CustomerName))
 			{
 				query = query.Where(t =>
 					t.Account != null &&
 					t.Account.Customer != null &&
-					(t.Account.Customer.FirstName + " " + t.Account.Customer.LastName).Contains(request.CustomerName)
+					(t.Account.Customer.FirstName + t.Account.Customer.LastName).Replace(" ", "").ToLower().Contains(request.CustomerName.Replace(" ",
+					"").ToLower())
 				);
 			}
 

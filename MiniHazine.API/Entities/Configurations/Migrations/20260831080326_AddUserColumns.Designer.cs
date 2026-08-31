@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniHazine.API.Entities;
 
@@ -11,9 +12,10 @@ using MiniHazine.API.Entities;
 namespace MiniHazine.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260831080326_AddUserColumns")]
+    partial class AddUserColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,10 +247,10 @@ namespace MiniHazine.API.Migrations
                         {
                             Id = 1,
                             AutoRefresh = false,
-                            CreatedAt = new DateTime(2026, 8, 31, 12, 38, 22, 286, DateTimeKind.Utc).AddTicks(4123),
+                            CreatedAt = new DateTime(2026, 8, 31, 8, 3, 26, 197, DateTimeKind.Utc).AddTicks(6723),
                             DefaultCurrency = "TRY",
                             IsActive = true,
-                            NotificationsEnabled = false,
+                            NotificationsEnabled = true,
                             Password = "123456",
                             Role = "Yönetici",
                             Username = "admin"

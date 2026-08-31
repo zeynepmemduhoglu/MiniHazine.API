@@ -22,6 +22,16 @@ namespace MiniHazine.API.Controllers
 			return Ok(users);
 		}
 
+		
+		[HttpGet("{id}")]
+		public async Task<ActionResult<UserResponseDto>> GetById(int id)
+		{
+			var users = await _userService.GetAllUsersAsync();
+			var user = users.FirstOrDefault(u => u.Id == id);
+			if (user == null) return NotFound("Kullanıcı bulunamadı.");
+			return Ok(user);
+		}
+
 		[HttpPost]
 		public async Task<ActionResult<UserResponseDto>> Create([FromBody] UserCreateDto dto)
 		{
@@ -57,6 +67,22 @@ namespace MiniHazine.API.Controllers
 			var result = await _userService.ChangePasswordAsync(id, dto);
 			if (!result) return BadRequest(new { message = "Mevcut şifre hatalı veya kullanıcı bulunamadı." });
 			return Ok(new { message = "Şifre başarıyla değiştirildi." });
+		}
+
+		[HttpPost("{id}/profile")]
+		public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileDto dto)
+		{
+			var result = await _userService.UpdateProfileAsync(id, dto);
+			if (!result) return BadRequest(new { message = "Kullanıcı bulunamadı veya güncelleme başarısız oldu." });
+			return Ok(new { message = "Profil bilgileri başarıyla güncellendi." });
+		}
+
+		[HttpPost("{id}/preferences")]
+		public async Task<IActionResult> UpdatePreferences(int id, [FromBody] UpdatePreferencesDto dto)
+		{
+			var result = await _userService.UpdatePreferencesAsync(id, dto);
+			if (!result) return BadRequest(new { message = "Kullanıcı bulunamadı veya tercihler kaydedilemedi." });
+			return Ok(new { message = "Uygulama tercihleri başarıyla kaydedildi." });
 		}
 	}
 }

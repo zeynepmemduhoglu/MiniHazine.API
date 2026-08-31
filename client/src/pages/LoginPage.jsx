@@ -1,24 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios'; 
 import styles from './LoginPage.module.css';
 
 const LoginPage = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-
-  
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault(); 
-    onLogin(); 
+    setLoading(true);
+
+    try {
+      
+      const response = await axios.post('https://localhost:7258/api/auth/login', {
+        username: username,
+        password: password
+      });
+
+      localStorage.setItem('userId', response.data.id); 
+      onLogin(); 
+    } catch (error) {
+      console.error("Giriş hatası:", error);
+      alert("Giriş başarısız: Kullanıcı adı veya şifre hatalı.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-
-  
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginWrapper}>
         
-        
         <div className={styles.brandSection}>
-          
           <div className={styles.starsContainer}>
             <span className={styles.star}></span>
             <span className={styles.star}></span>
@@ -29,7 +43,6 @@ const LoginPage = ({ onLogin }) => {
           </div>
 
           <div className={styles.brandContent}>
-            
             <div className={styles.topContent}>
               <h1 className={styles.brandTitle}>FinCore</h1>
               <p className={styles.brandSlogan}>
@@ -37,7 +50,7 @@ const LoginPage = ({ onLogin }) => {
               </p>
             </div>
 
-                        <div className={styles.logoWrapper}>
+            <div className={styles.logoWrapper}>
               <svg className={styles.finLogo} viewBox="0 0 160 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="22" cy="22.5" r="15" stroke="url(#coreGradient)" strokeWidth="3" strokeDasharray="4 2" />
                 <circle cx="22" cy="22.5" r="7" fill="#FF6B6B" />
@@ -56,10 +69,8 @@ const LoginPage = ({ onLogin }) => {
           </div>
         </div>
 
-        
         <div className={styles.formSection}>
           <div className={styles.loginCard}>
-            
             <div className={styles.cardTopAccent}></div>
             
             <div className={styles.headerGroup}>
@@ -77,6 +88,8 @@ const LoginPage = ({ onLogin }) => {
                   name="username"
                   className={styles.inputField} 
                   placeholder="kullanici.adi"
+                  value={username} 
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>
@@ -89,12 +102,14 @@ const LoginPage = ({ onLogin }) => {
                   name="password"
                   className={styles.inputField} 
                   placeholder="••••••••"
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
                   required
                 />
               </div>
 
-              <button type="submit" className={styles.loginButton}>
-                GİRİŞ YAP
+              <button type="submit" className={styles.loginButton} disabled={loading}>
+                {loading ? "Giriş Yapılıyor..." : "GİRİŞ YAP"}
               </button>
 
               <button type="button" className={styles.ssoButton}>

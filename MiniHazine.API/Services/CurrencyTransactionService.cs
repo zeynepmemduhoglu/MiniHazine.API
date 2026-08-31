@@ -110,9 +110,12 @@ namespace MiniHazine.API.Services
 				.Where(t => t.AccountId == request.AccountId && t.CurrencyId == exchangeRate.CurrencyId && t.TransactionType == "BUY")
 				.SumAsync(t => (decimal?)t.Amount) ?? 0;
 
+
 			var totalSold = await _context.CurrencyTransactions
 				.Where(t => t.AccountId == request.AccountId && t.CurrencyId == exchangeRate.CurrencyId && t.TransactionType == "SELL")
 				.SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+
 
 			decimal currentCurrencyBalance = totalBought - totalSold;
 
