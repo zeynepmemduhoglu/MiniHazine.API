@@ -78,7 +78,7 @@ namespace MiniHazine.API.Services
 			
 			if (user.Role == "Personel" && dto.Role == "Yönetici")
 			{
-				throw new InvalidOperationException("Personel rolündeki bir kullanıcı doğrudan yönetici yapılamaz.");
+				throw new InvalidOperationException("personel rolündeki bir kullanıcı doğrudan yönetici yapılamaz.");
 			}
 
 			user.Username = dto.Username;
@@ -126,12 +126,12 @@ namespace MiniHazine.API.Services
 
 			if (!string.IsNullOrEmpty(dto.Email) && await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != id))
 			{
-				throw new InvalidOperationException("Bu e-posta adresi başka bir kullanıcıya ait.");
+				throw new InvalidOperationException("bu e-posta adresi başka bir kullanıcıya ait.");
 			}
 
 			if (!string.IsNullOrEmpty(dto.PhoneNumber) && await _context.Users.AnyAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != id))
 			{
-				throw new InvalidOperationException("Bu telefon numarası başka bir kullanıcıya ait.");
+				throw new InvalidOperationException("bu telefon numarası başka bir kullanıcıya ait.");
 			}
 
 			user.Username = dto.Username;

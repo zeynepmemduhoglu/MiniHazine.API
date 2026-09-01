@@ -15,6 +15,7 @@ namespace MiniHazine.API.Entities
 		public DbSet<ExchangeRate> ExchangeRates { get; set; }
 		public DbSet<CurrencyTransaction> CurrencyTransactions { get; set; }
 		public DbSet<User> Users { get; set; }
+		public DbSet<PreciousMetalRate> PreciousMetalRates { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
