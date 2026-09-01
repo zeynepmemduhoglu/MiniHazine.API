@@ -8,6 +8,7 @@ const Customers = () => {
   const [isEditMode, setIsEditMode] = useState(false); 
   const [editingId, setEditingId] = useState(null); 
   const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [searchTerm, setSearchTerm] = useState(''); // Arama filtresi için state eklendi
   
   const [formData, setFormData] = useState({ 
     firstName: '', 
@@ -139,6 +140,18 @@ const Customers = () => {
     }
   };
 
+ 
+  const filteredCustomers = customers.filter(c => {
+    const fName = (c.firstName || c.FirstName || '').toLowerCase();
+    const lName = (c.lastName || c.LastName || '').toLowerCase();
+    const email = (c.email || c.Email || '').toLowerCase();
+    const tcNo = (c.identityNumber || c.IdentityNumber || '').toLowerCase();
+    const phone = (c.phoneNumber || c.PhoneNumber || '').toLowerCase();
+    const query = searchTerm.toLowerCase();
+
+    return fName.includes(query) || lName.includes(query) || email.includes(query) || tcNo.includes(query) || phone.includes(query);
+  });
+
   return (
     <div className={styles.customersPage}>
       <div className={styles.pageHeader}>
@@ -156,14 +169,16 @@ const Customers = () => {
         <div className={styles.tableToolbar}>
           <input 
             type="text" 
-            placeholder="Müşteri adı veya şirket ara..." 
+            placeholder="Müşteri adı, e-posta veya TC ara..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchBox} 
           />
         </div>
 
         {loading ? (
           <p style={{ textAlign: 'center', padding: '20px' }}>Yükleniyor...</p>
-        ) : customers.length === 0 ? (            
+        ) : filteredCustomers.length === 0 ? (            
           <div className={styles.emptyState}>
             <div className={styles.emptyIconContainer}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
@@ -173,8 +188,8 @@ const Customers = () => {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             </div>
-            <h3>Henüz Müşteri Eklenmemiş</h3>
-            <p>Sistemde kayıtlı müşteri bulunmuyor. Yeni müşteri kaydı oluşturmak için yukarıdaki butonu kullanabilirsiniz.</p>
+            <h3>Kayıt Bulunamadı</h3>
+            <p>Arama kriterinize uygun müşteri bulunmuyor.</p>
           </div>
         ) : (
           <table className={styles.customerTable}>
@@ -188,45 +203,48 @@ const Customers = () => {
               </tr>
             </thead>
             <tbody>
-              {customers.map((c, index) => (
-                <tr key={index}>
-                  <td>{c.firstName} {c.lastName}</td>
-                  <td>{c.email}</td>
-                  <td>{c.identityNumber}</td>
-                  <td>{c.phoneNumber}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        onClick={() => handleOpenEditModal(c)}
-                        style={{
-                          background: '#ffc107',
-                          color: '#000',
-                          border: 'none',
-                          padding: '6px 10px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        Düzenle
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(c)}
-                        style={{
-                          background: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 10px',
-                          borderRadius: '4px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Sil
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {filteredCustomers.map((c, index) => {
+                const cId = c.customerId || c.Id || c.id;
+                return (
+                  <tr key={cId || index}>
+                    <td>{c.firstName} {c.lastName}</td>
+                    <td>{c.email}</td>
+                    <td>{c.identityNumber}</td>
+                    <td>{c.phoneNumber}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                          onClick={() => handleOpenEditModal(c)}
+                          style={{
+                            background: '#F59E0B',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '6px 10px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          Düzenle
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(c)}
+                          style={{
+                            background: '#EF4444',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 10px',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Sil
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -275,7 +293,7 @@ const Customers = () => {
                   disabled={isSubmitting}
                   style={{ 
                     padding: '8px 12px', 
-                    background: isSubmitting ? '#cccccc' : '#0056b3', 
+                    background: isSubmitting ? '#cccccc' : '#F59E0B', 
                     color: 'white', 
                     border: 'none',
                     cursor: isSubmitting ? 'not-allowed' : 'pointer'
