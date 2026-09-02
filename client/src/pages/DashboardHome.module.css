@@ -129,20 +129,3 @@
 
 
 
-
-
-.bannerText {
-    display: flex;          
-    align-items: baseline;  
-    gap: 1rem;              
-}
-
-.bannerText h2 {
-    margin: 0;
-    white-space: nowrap;    
-}
-
-.bannerText p {
-    margin: 0;
-    color: #94A3B8;
-}

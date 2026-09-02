@@ -26,9 +26,6 @@ const Header = ({ activeTab }) => {
     <header className={styles.header}>
       <h2 className={styles.headerTitle}>{pageTitle}</h2>
 
-      <div className={styles.searchBar}>
-        <input type="text" placeholder="Müşteri, hesap veya işlem ara..." />
-      </div>
 
       <div className={styles.userInfo}>
         <span>Hoşgeldiniz, <strong>admin</strong></span>

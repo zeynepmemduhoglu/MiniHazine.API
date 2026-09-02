@@ -14,9 +14,7 @@ import Settings from './pages/Settings';
 
 function App() {
   
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('userId') !== null;
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [activeTab, setActiveTab] = useState('dashboard');
 
