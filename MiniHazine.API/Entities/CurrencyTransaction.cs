@@ -10,6 +10,8 @@
 		public int AccountId { get; set; }
 		public Account Account { get; set; }
 
+		public int TargetAccountId { get; set; }
+
 		public int CurrencyId { get; set; }
 		public Currency Currency { get; set; }
 		
