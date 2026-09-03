@@ -56,3 +56,6 @@ namespace MiniHazine.API.Controllers
 		}
 	}
 }
+
+
+// program.cs te log yap

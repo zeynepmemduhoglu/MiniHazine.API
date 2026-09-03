@@ -22,7 +22,6 @@ namespace MiniHazine.API.Controllers
 			return Ok(users);
 		}
 
-		
 		[HttpGet("{id}")]
 		public async Task<ActionResult<UserResponseDto>> GetById(int id)
 		{
@@ -54,11 +53,18 @@ namespace MiniHazine.API.Controllers
 		}
 
 		[HttpDelete("{id}")]
-		public async Task<IActionResult> Delete(int id)
+		public async Task<IActionResult> Delete(int id, [FromQuery] int adminId)
 		{
-			var result = await _userService.DeleteUserAsync(id);
-			if (!result) return NotFound("Kullanıcı bulunamadı.");
-			return NoContent();
+			try
+			{
+				var result = await _userService.DeleteUserAsync(adminId, id);
+				if (!result) return NotFound("Kullanıcı bulunamadı.");
+				return NoContent();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { message = ex.Message });
+			}
 		}
 
 		[HttpPost("{id}/change-password")]

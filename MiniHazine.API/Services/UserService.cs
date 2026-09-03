@@ -27,7 +27,10 @@ namespace MiniHazine.API.Services
 					IsActive = u.IsActive,
 					CreatedAt = u.CreatedAt,
 					Email = u.Email,
-					PhoneNumber = u.PhoneNumber
+					PhoneNumber = u.PhoneNumber,
+					DefaultCurrency = u.DefaultCurrency,
+					NotificationsEnabled = u.NotificationsEnabled,
+					AutoRefresh = u.AutoRefresh
 				})
 				.ToListAsync();
 
@@ -66,7 +69,10 @@ namespace MiniHazine.API.Services
 				IsActive = user.IsActive,
 				CreatedAt = user.CreatedAt,
 				Email = user.Email,
-				PhoneNumber = user.PhoneNumber
+				PhoneNumber = user.PhoneNumber,
+				DefaultCurrency = user.DefaultCurrency,
+				NotificationsEnabled = user.NotificationsEnabled,
+				AutoRefresh = user.AutoRefresh
 			};
 		}
 
@@ -75,7 +81,6 @@ namespace MiniHazine.API.Services
 			var user = await _context.Users.FindAsync(id);
 			if (user == null) throw new KeyNotFoundException("Kullanıcı bulunamadı.");
 
-			
 			if (user.Role == "Personel" && dto.Role == "Yönetici")
 			{
 				throw new InvalidOperationException("personel rolündeki bir kullanıcı doğrudan yönetici yapılamaz.");
@@ -95,16 +100,25 @@ namespace MiniHazine.API.Services
 				IsActive = user.IsActive,
 				CreatedAt = user.CreatedAt,
 				Email = user.Email,
-				PhoneNumber = user.PhoneNumber
+				PhoneNumber = user.PhoneNumber,
+				DefaultCurrency = user.DefaultCurrency,
+				NotificationsEnabled = user.NotificationsEnabled,
+				AutoRefresh = user.AutoRefresh
 			};
 		}
 
-		public async Task<bool> DeleteUserAsync(int id)
+		public async Task<bool> DeleteUserAsync(int deletingUserId, int targetUserId)
 		{
-			var user = await _context.Users.FindAsync(id);
-			if (user == null) return false;
+			var deletingUser = await _context.Users.FindAsync(deletingUserId);
+			if (deletingUser == null || deletingUser.Role != "Yönetici")
+			{
+				throw new InvalidOperationException("Yetkisiz işlem: Yalnızca yöneticiler kullanıcı silebilir.");
+			}
 
-			_context.Users.Remove(user);
+			var targetUser = await _context.Users.FindAsync(targetUserId);
+			if (targetUser == null) return false;
+
+			_context.Users.Remove(targetUser);
 			await _context.SaveChangesAsync();
 			return true;
 		}
@@ -123,6 +137,11 @@ namespace MiniHazine.API.Services
 		{
 			var user = await _context.Users.FindAsync(id);
 			if (user == null) return false;
+
+			if (!string.IsNullOrEmpty(dto.PhoneNumber) && dto.PhoneNumber.Length != 11)
+			{
+				throw new InvalidOperationException("Telefon numarası tam olarak 11 hane olmalıdır.");
+			}
 
 			if (!string.IsNullOrEmpty(dto.Email) && await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != id))
 			{

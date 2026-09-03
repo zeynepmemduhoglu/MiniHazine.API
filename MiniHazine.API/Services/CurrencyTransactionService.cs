@@ -26,6 +26,7 @@ namespace MiniHazine.API.Services
 					TransactionDate = t.TransactionDate,
 					AccountId = t.AccountId,
 					Account = t.Account,
+
 					AccountType = t.Account != null ? t.Account.AccountName : "Bilinmeyen Hesap",
 					CustomerName = t.Account != null && t.Account.Customer != null
 						? $"{t.Account.Customer.FirstName} {t.Account.Customer.LastName}"
@@ -37,6 +38,9 @@ namespace MiniHazine.API.Services
 			return result;
 		}
 
+
+
+		// ALIŞ YAPIYORUM
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> BuyCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
 			if (request.Amount <= 0)
@@ -44,21 +48,24 @@ namespace MiniHazine.API.Services
 				return (false, "Hata: İşlem miktarı 0'dan büyük olmalıdır!", null);
 			}
 
-			
+
+
 			var sourceAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
 			if (sourceAccount == null)
 			{
-				return (false, "Hata: Kaynak TL hesabı bulunamadı!", null);
+				return (false, "Hata: Kaynak TL  bulunamadı!", null);
 			}
-
 			request.CustomerId = sourceAccount.CustomerId;
 
-			
+
+
 			var targetAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.TargetAccountId);
 			if (targetAccount == null)
 			{
 				return (false, "Hata: Hedef döviz hesabı bulunamadı!", null);
 			}
+
+
 
 			var exchangeRate = await _context.ExchangeRates.FindAsync(request.CurrencyId);
 			if (exchangeRate == null)
@@ -67,17 +74,15 @@ namespace MiniHazine.API.Services
 			}
 
 
+
 			decimal totalCost = request.Amount * exchangeRate.SellRate;
 
 			if (sourceAccount.Balance < totalCost)
 			{
-				return (false, "Hata: TL hesabınızda bu işlemi yapacak yeterli bakiye yok yokk", null);
+				return (false, "Hata: TL hesabınızda alış işlemi yapacak yeterli bakiye yok yokk", null);
 			}
-
-
-
 			sourceAccount.Balance -= totalCost;
-			targetAccount.Balance += request.Amount; 
+			targetAccount.Balance += request.Amount;
 
 
 
@@ -90,7 +95,7 @@ namespace MiniHazine.API.Services
 				Amount = request.Amount,
 				TotalRate = exchangeRate.SellRate,
 				TransactionType = "BUY",
-				TransactionDate = DateTime.UtcNow,
+				TransactionDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Turkey Standard Time"),
 			};
 
 			_context.CurrencyTransactions.Add(buyTransaction);
@@ -101,6 +106,7 @@ namespace MiniHazine.API.Services
 
 
 
+		// SATIŞ YAPIYORUM
 
 		public async Task<(bool Success, string Message, CurrencyTransaction? Transaction)> SellCurrencyAsync(DTOCurrencyTransactionRequest request)
 		{
@@ -109,7 +115,7 @@ namespace MiniHazine.API.Services
 				return (false, "Hata: İşlem miktarı 0'dan büyük olmalıdır!", null);
 			}
 
-			
+
 			var sourceAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
 			if (sourceAccount == null)
 			{
@@ -118,7 +124,7 @@ namespace MiniHazine.API.Services
 			request.CustomerId = sourceAccount.CustomerId;
 
 
-			
+
 			var targetAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.TargetAccountId);
 			if (targetAccount == null)
 			{
@@ -150,7 +156,7 @@ namespace MiniHazine.API.Services
 			decimal currentCurrencyBalance = totalBought - totalSold;
 
 
-			if (request.Amount > sourceAccount.Balance) 
+			if (request.Amount > sourceAccount.Balance)
 			{
 				return (false, "Hata: Hesabınızda satmak istediğiniz miktarda bu dövizden yoook", null);
 			}
@@ -159,9 +165,9 @@ namespace MiniHazine.API.Services
 
 			decimal totalRevenue = request.Amount * exchangeRate.BuyRate; // kullanıcının eline toplam geçecek miktar ( satılmak istenen mktar * bankanın o dövizi alış kuru)
 
-			
-			sourceAccount.Balance -= request.Amount; 
-			targetAccount.Balance += totalRevenue;   
+
+			sourceAccount.Balance -= request.Amount;
+			targetAccount.Balance += totalRevenue;     // TL hesabına yatıralacak olan para yani
 
 			var sellTransaction = new CurrencyTransaction
 			{
@@ -172,7 +178,7 @@ namespace MiniHazine.API.Services
 				Amount = request.Amount,
 				TotalRate = exchangeRate.BuyRate,
 				TransactionType = "SELL",
-				TransactionDate = DateTime.UtcNow
+				TransactionDate = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Turkey Standard Time")
 			};
 
 			_context.CurrencyTransactions.Add(sellTransaction);

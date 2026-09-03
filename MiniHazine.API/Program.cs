@@ -12,7 +12,6 @@ builder.Services.AddCors(options =>
 						.AllowAnyHeader());
 });
 
-
 builder.Services.AddControllers()
 	.AddJsonOptions(options =>
 	{
@@ -27,7 +26,7 @@ builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<ReportService>();
-builder.Services.AddScoped<UserService>(); 
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
