@@ -17,7 +17,6 @@ export default function Settings() {
 
   const userId = localStorage.getItem('userId') || 1;
 
- 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -65,6 +64,13 @@ export default function Settings() {
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
+
+    // Frontend tarafında 11 hane kontrolü
+    if (phoneNumber.length !== 11) {
+      alert('Telefon numarası tam olarak 11 haneli olmalıdır!');
+      return;
+    }
+
     setLoadingProfile(true);
 
     try {
@@ -96,7 +102,13 @@ export default function Settings() {
         body: JSON.stringify({ defaultCurrency, notificationsEnabled, autoRefresh })
       });
 
-      const data = await response.json();
+      // Backend boolean veya boş dönebileceği için güvenli kontrol ekledik
+      const contentType = response.headers.get("content-type");
+      let data = {};
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+      }
+
       if (!response.ok) throw new Error(data.message || 'Tercihler kaydedilemedi.');
 
       alert('Uygulama tercihleri başarıyla kaydedildi!');
@@ -116,6 +128,7 @@ export default function Settings() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
         
+        {/* Profil Bilgileri */}
         <div style={{ backgroundColor: '#FFF', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
           <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#1E293B', borderBottom: '1px solid #F1F5F9', paddingBottom: '0.5rem' }}>Profil Bilgileri</h3>
@@ -143,11 +156,12 @@ export default function Settings() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '0.3rem' }}>Telefon Numarası</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '0.3rem' }}>Telefon Numarası (11 Hane)</label>
               <input 
                 type="text" 
                 value={phoneNumber} 
-                onChange={e => setPhoneNumber(e.target.value)} 
+                maxLength={11}
+                onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, ''))} // Sadece rakam girilmesini sağlar
                 placeholder="05XXXXXXXXX"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }} 
                 required
@@ -164,6 +178,7 @@ export default function Settings() {
           </form>
         </div>
 
+        {/* Şifre Değiştir */}
         <div style={{ backgroundColor: '#FFF', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
           <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#1E293B', borderBottom: '1px solid #F1F5F9', paddingBottom: '0.5rem' }}>Şifre Değiştir</h3>
@@ -202,6 +217,7 @@ export default function Settings() {
           </form>
         </div>
         
+        {/* Uygulama Tercihleri */}
         <div style={{ backgroundColor: '#FFF', padding: '2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' }}>
           <form onSubmit={handleSavePreferences} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#1E293B', borderBottom: '1px solid #F1F5F9', paddingBottom: '0.5rem' }}>Uygulama Tercihleri</h3>

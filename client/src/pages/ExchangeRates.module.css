@@ -3,6 +3,8 @@
   flex-direction: column;
   gap: 2rem;
   padding: 2rem;
+  background-color: #ffffff;
+  min-height: 100vh;
 }
 
 .pageHeader {
@@ -31,8 +33,19 @@
   border: 1px solid #e2e8f0;
 }
 
+
+.exchangePage .contentCard:first-of-type {
+  background-color: #0f172a !important;
+  border: 1px solid #1e293b !important;
+}
+
+.exchangePage .contentCard:first-of-type h3 {
+  color: #ffffff !important;
+}
+
 .tableWrapper {
   overflow-x: auto;
+  background-color: #0f172a;
 }
 
 .rateTable {
@@ -40,33 +53,39 @@
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
+  background-color: #0f172a;
 }
 
 .rateTable th {
   padding: 0.75rem 1rem;
-  background-color: #f8fafc;
-  color: #475569;
+  background-color: #0f172a !important;
+  color: #94a3b8 !important;
   font-weight: 600;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #1e293b;
 }
 
 .rateTable td {
   padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
+  border-bottom: 1px solid #1e293b;
+  background-color: #0f172a !important;
 }
 
-.codeCell {
-  font-weight: 600;
-  color: #0f172a;
+
+.exchangePage .contentCard:first-of-type .rateTable td:first-child,
+.exchangePage .contentCard:first-of-type .rateTable td:first-child *,
+.exchangePage .contentCard:first-of-type .codeCell {
+  color: #ffffff !important;
 }
+
+
 
 .positive {
-  color: #10b981;
+  color: #10b981 !important;
   font-weight: 600;
 }
 
+
 .negative {
-  color: #ef4444;
+  color: #ef4444 !important;
   font-weight: 600;
 }

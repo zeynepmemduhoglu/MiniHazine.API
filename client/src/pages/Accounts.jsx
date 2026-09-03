@@ -7,6 +7,8 @@ const Accounts = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
+  const [expandedCustomers, setExpandedCustomers] = useState({});
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -62,6 +64,17 @@ const Accounts = () => {
     const name = cust.firstName || cust.FirstName || cust.name || cust.Name || '';
     const surname = cust.lastName || cust.LastName || cust.surname || cust.Surname || '';
     return `${name} ${surname}`.trim();
+  };
+
+  const getCustomerId = (acc) => {
+    return acc.customerId || acc.CustomerId;
+  };
+
+  const toggleCustomerAccordion = (custId) => {
+    setExpandedCustomers(prev => ({
+      ...prev,
+      [custId]: !prev[custId]
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -189,6 +202,25 @@ const Accounts = () => {
     return custName.includes(query) || accName.includes(query) || accNo.includes(query);
   });
 
+  const groupedByCustomer = {};
+  filteredAccounts.forEach(acc => {
+    const custId = getCustomerId(acc) || 'unknown';
+    const custName = getCustomerName(acc);
+    if (!groupedByCustomer[custId]) {
+      groupedByCustomer[custId] = {
+        customerName: custName,
+        accounts: []
+      };
+    }
+    groupedByCustomer[custId].accounts.push(acc);
+  });
+
+  const customerGroups = Object.keys(groupedByCustomer).map(custId => ({
+    customerId: custId,
+    customerName: groupedByCustomer[custId].customerName,
+    accounts: groupedByCustomer[custId].accounts
+  }));
+
   return (
     <div className={styles.accountsPage}>
       <div className={styles.pageHeader}>
@@ -205,7 +237,7 @@ const Accounts = () => {
       </div>
 
       <div className={styles.contentCard}>
-        <div className={styles.tableToolbar}>
+        <div className={styles.tableToolbar} style={{ marginBottom: '20px' }}>
           <input 
             type="text" 
             placeholder="Hesap adı, no veya müşteri ara..." 
@@ -217,7 +249,7 @@ const Accounts = () => {
 
         {loading ? (
           <p style={{ textAlign: 'center', padding: '20px' }}>Yükleniyor...</p>
-        ) : filteredAccounts.length === 0 ? (
+        ) : customerGroups.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIconContainer}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
@@ -229,58 +261,92 @@ const Accounts = () => {
             <p>Arama kriterinize uygun aktif hesap bulunmuyor.</p>
           </div>
         ) : (
-          <table className={styles.accountTable}>
-            <thead>
-              <tr>
-                <th>Müşteri Adı</th>
-                <th>Hesap Adı</th>
-                <th>Hesap No</th>
-                <th>Bakiye</th>
-                <th>Para Birimi</th>
-                <th style={{ textAlign: 'center' }}>İşlemler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAccounts.map((acc, index) => {
-                const ownerName = getCustomerName(acc);
-                const accName = acc.accountName || acc.AccountName;
-                const accNo = acc.accountNumber || acc.AccountNumber;
-                const balance = acc.balance !== undefined ? acc.balance : acc.Balance;
-                const currency = acc.currency || acc.Currency;
-                const accId = acc.id || acc.Id;
+          /* Modern Kart Listesi Yapısı */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {customerGroups.map((group) => {
+              const isExpanded = !!expandedCustomers[group.customerId];
 
-                return (
-                  <tr key={accId || index}>
-                    <td>{ownerName}</td>
-                    <td>{accName}</td>
-                    <td>{accNo}</td>
-                    <td>{Number(balance).toLocaleString('tr-TR')}</td>
-                    <td>
-                      <span style={{ 
-                        padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem',
-                        background: currency === 'USD' ? '#ECFDF5' : currency === 'EUR' ? '#FEF3C7' : '#EEF2FF',
-                        color: currency === 'USD' ? '#10B981' : currency === 'EUR' ? '#D97706' : '#6366F1' 
-                      }}>
-                        {currency}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button 
-                        onClick={() => handleOpenEditModal(acc)} 
-                        style={{ marginRight: '8px', padding: '6px 12px', background: '#F59E0B', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                        Düzenle
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(accId)} 
-                        style={{ padding: '6px 12px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                        Sil
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+              return (
+                <div key={group.customerId} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', background: '#ffffff', overflow: 'hidden', transition: 'all 0.2s ease' }}>
+                  {/* Müşteri Satır Kartı */}
+                  <div 
+                    onClick={() => toggleCustomerAccordion(group.customerId)}
+                    style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: isExpanded ? '#f8fafc' : '#ffffff' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                        {group.customerName.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '1rem', color: '#1e293b' }}>{group.customerName}</h4>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{group.accounts.length} Adet Hesap</span>
+                      </div>
+                    </div>
+                    <button 
+                      style={{ padding: '6px 14px', background: isExpanded ? '#E2E8F0' : '#EEF2FF', color: isExpanded ? '#475569' : '#4F46E5', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500' }}>
+                      {isExpanded ? 'Hesapları Gizle ▲' : 'Hesapları Göster ▼'}
+                    </button>
+                  </div>
+
+                  {/* Açılır Kapanır Hesap Detay Alanı */}
+                  {isExpanded && (
+                    <div style={{ padding: '0 20px 20px 20px', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                      <div style={{ marginTop: '15px', background: '#ffffff', borderRadius: '8px', padding: '10px 15px', border: '1px solid #e2e8f0' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left', fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              <th style={{ padding: '10px 8px' }}>Hesap Adı</th>
+                              <th style={{ padding: '10px 8px' }}>Hesap No</th>
+                              <th style={{ padding: '10px 8px' }}>Bakiye</th>
+                              <th style={{ padding: '10px 8px' }}>Para Birimi</th>
+                              <th style={{ padding: '10px 8px', textAlign: 'center' }}>İşlemler</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {group.accounts.map((acc, idx) => {
+                              const accName = acc.accountName || acc.AccountName;
+                              const accNo = acc.accountNumber || acc.AccountNumber;
+                              const balance = acc.balance !== undefined ? acc.balance : acc.Balance;
+                              const currency = acc.currency || acc.Currency;
+                              const accId = acc.id || acc.Id;
+
+                              return (
+                                <tr key={accId || idx} style={{ borderBottom: idx === group.accounts.length - 1 ? 'none' : '1px solid #f1f5f9', fontSize: '0.9rem' }}>
+                                  <td style={{ padding: '12px 8px', fontWeight: '500', color: '#334155' }}>{accName}</td>
+                                  <td style={{ padding: '12px 8px', color: '#64748b' }}>{accNo}</td>
+                                  <td style={{ padding: '12px 8px', fontWeight: '600', color: '#0f172a' }}>{Number(balance).toLocaleString('tr-TR')}</td>
+                                  <td style={{ padding: '12px 8px' }}>
+                                    <span style={{ 
+                                      padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '600',
+                                      background: currency === 'USD' ? '#ECFDF5' : currency === 'EUR' ? '#FEF3C7' : '#EEF2FF',
+                                      color: currency === 'USD' ? '#10B981' : currency === 'EUR' ? '#D97706' : '#6366F1' 
+                                    }}>
+                                      {currency}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '12px 8px', textAlign: 'center' }}>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleOpenEditModal(acc); }} 
+                                      style={{ marginRight: '6px', padding: '5px 10px', background: '#FEF3C7', color: '#D97706', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}>
+                                      Düzenle
+                                    </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleDelete(accId); }} 
+                                      style={{ padding: '5px 10px', background: '#FEE2E2', color: '#DC2626', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}>
+                                      Sil
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

@@ -12,13 +12,17 @@ const LoginPage = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      
       const response = await axios.post('https://localhost:7258/api/auth/login', {
         username: username,
         password: password
       });
 
       localStorage.setItem('userId', response.data.id); 
+
+     
+      const loggedInName = response.data.fullName || response.data.name || response.data.username || username;
+      localStorage.setItem('userName', loggedInName);
+
       onLogin(); 
     } catch (error) {
       console.error("Giriş hatası:", error);
@@ -86,6 +90,7 @@ const LoginPage = ({ onLogin }) => {
                   type="text"
                   id="username"
                   name="username"
+                  autoComplete="off"
                   className={styles.inputField} 
                   placeholder="kullanici.adi"
                   value={username} 
@@ -100,6 +105,7 @@ const LoginPage = ({ onLogin }) => {
                   type="password"
                   id="password"
                   name="password"
+                  autoComplete="new-password"
                   className={styles.inputField} 
                   placeholder="••••••••"
                   value={password} 

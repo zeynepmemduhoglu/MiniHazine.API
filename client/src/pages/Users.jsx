@@ -20,6 +20,9 @@ export default function Users() {
   const [editRole, setEditRole] = useState('');
   const [editIsActive, setEditIsActive] = useState(true);
 
+  // Oturum açan kullanıcının ID'si (localStorage'dan alınır veya varsayılan 1)
+  const adminId = localStorage.getItem('userId') || 1;
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -71,8 +74,16 @@ export default function Users() {
   const handleDelete = async (id) => {
     if (!window.confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
     try {
-      const response = await fetch(`https://localhost:7258/api/users/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Silme işlemi başarısız.');
+      // Backend'deki yeni [FromQuery] adminId yapısına uygun olarak istek atıyoruz
+      const response = await fetch(`https://localhost:7258/api/users/${id}?adminId=${adminId}`, { 
+        method: 'DELETE' 
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Silme işlemi başarısız.');
+      }
+      
       setUsers(users.filter(u => u.id !== id));
     } catch (err) {
       alert(err.message);

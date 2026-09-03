@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { buyCurrency, sellCurrency } from '../services/transactionService';
 
-export default function ExchangeTransactions() {
+export default function ExchangeRates() {
   const [accounts, setAccounts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [exchangeRates, setExchangeRates] = useState([]);
@@ -9,7 +9,6 @@ export default function ExchangeTransactions() {
   const [formData, setFormData] = useState({
     accountId: '',
     targetAccountId: '',
-    currencyId: '',
     amount: ''
   });
 
@@ -27,26 +26,35 @@ export default function ExchangeTransactions() {
     return [];
   };
 
+  const fetchData = async () => {
+    try {
+      const accResponse = await fetch('https://localhost:7258/api/accounts');
+      const accData = await accResponse.json();
+      setAccounts(extractArray(accData));
+
+      const custResponse = await fetch('https://localhost:7258/api/customers');
+      const custData = await custResponse.json();
+      setCustomers(extractArray(custData));
+
+      const rateResponse = await fetch('https://localhost:7258/api/exchange-rates');
+      const rateData = await rateResponse.json();
+      setExchangeRates(extractArray(rateData));
+    } catch (err) {
+      console.error('Veriler yüklenirken hata oluştu:', err);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const accResponse = await fetch('https://localhost:7258/api/accounts');
-        const accData = await accResponse.json();
-        setAccounts(extractArray(accData));
-
-        const custResponse = await fetch('https://localhost:7258/api/customers');
-        const custData = await custResponse.json();
-        setCustomers(extractArray(custData));
-
-        const rateResponse = await fetch('https://localhost:7258/api/exchange-rates');
-        const rateData = await rateResponse.json();
-        setExchangeRates(extractArray(rateData));
-      } catch (err) {
-        console.error('Veriler yüklenirken hata oluştu:', err);
-      }
-    };
     fetchData();
   }, []);
+
+  const formatNumber = (val) => {
+    if (val === undefined || val === null || isNaN(val)) return '0,00';
+    return Number(val).toLocaleString('tr-TR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
+    });
+  };
 
   const getOwnerName = (acc) => {
     if (acc.customerName || acc.CustomerName) {
@@ -67,13 +75,12 @@ export default function ExchangeTransactions() {
     return acc.customerId || acc.CustomerId || (acc.customer ? (acc.customer.id || acc.customer.Id) : null);
   };
 
-  const getAccountType = (acc) => {
-    return String(acc.accountType || acc.AccountType || acc.accountName || acc.AccountName || '').toLowerCase();
+  const getAccountCurrency = (acc) => {
+    return String(acc.currency || acc.Currency || acc.currencyCode || acc.CurrencyCode || '').toUpperCase();
   };
 
   const isTlAccount = (acc) => {
-    const currency = String(acc.currency || acc.Currency || acc.currencyCode || acc.CurrencyCode || '').toLowerCase();
-    return currency === 'try';
+    return getAccountCurrency(acc) === 'TRY';
   };
 
   const isForeignAccount = (acc) => {
@@ -84,71 +91,30 @@ export default function ExchangeTransactions() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleBuy = async (e) => {
-    e.preventDefault();
-    if (!formData.accountId || !formData.targetAccountId || !formData.currencyId || !formData.amount) {
-        setMessage({ text: 'Lütfen tüm alanları doldurun.', type: 'error' });
-        return;
-    }
-    setLoading(true);
-    setMessage({ text: '', type: '' });
+  const selectedAccount = accounts.find(a => String(a.id || a.Id) === String(formData.accountId));
+  const selectedTargetAccount = accounts.find(a => String(a.id || a.Id) === String(formData.targetAccountId));
 
-    const result = await buyCurrency({
-      accountId: Number(formData.accountId),
-      targetAccountId: Number(formData.targetAccountId),
-      currencyId: Number(formData.currencyId),
-      amount: Number(formData.amount)
-    });
+  
+  const activeCurrencyCode = selectedAccount && isForeignAccount(selectedAccount) 
+    ? getAccountCurrency(selectedAccount) 
+    : (selectedTargetAccount && isForeignAccount(selectedTargetAccount) ? getAccountCurrency(selectedTargetAccount) : '');
 
-    if (result.success) {
-      setMessage({ text: result.data.message || 'Döviz alış işlemi başarıyla gerçekleştirildi!', type: 'success' });
-      setFormData({ accountId: '', targetAccountId: '', currencyId: '', amount: '' });
-    } else {
-      setMessage({ text: result.message || 'Alış işlemi başarısız oldu.', type: 'error' });
-    }
-    setLoading(false);
-  };
-
-  const handleSell = async (e) => {
-    e.preventDefault();
-    if (!formData.accountId || !formData.targetAccountId || !formData.currencyId || !formData.amount) {
-        setMessage({ text: 'Lütfen tüm alanları doldurun.', type: 'error' });
-        return;
-    }
-    setLoading(true);
-    setMessage({ text: '', type: '' });
-
-    const result = await sellCurrency({
-      accountId: Number(formData.accountId),
-      targetAccountId: Number(formData.targetAccountId),
-      currencyId: Number(formData.currencyId),
-      amount: Number(formData.amount)
-    });
-
-    if (result.success) {
-      setMessage({ text: result.data.message || 'Döviz satış işlemi başarıyla gerçekleştirildi!', type: 'success' });
-      setFormData({ accountId: '', targetAccountId: '', currencyId: '', amount: '' });
-    } else {
-      setMessage({ text: result.message || 'Satış işlemi başarısız oldu.', type: 'error' });
-    }
-    setLoading(false);
-  };
+  const selectedRateObj = exchangeRates.find(r => {
+    const rawCode = r.pair || r.Pair || r.currencyCode || r.CurrencyCode || r.code || r.Code || '';
+    const code = String(rawCode).split('/')[0].split('(')[0].trim().toUpperCase();
+    return code === activeCurrencyCode;
+  });
 
   const getRateDetails = (rate) => {
     if (!rate) return { id: '', code: '', buy: 0, sell: 0 };
     const id = rate.id || rate.Id || rate.currencyId || rate.CurrencyId;
-    
     let rawCode = rate.pair || rate.Pair || rate.currencyCode || rate.CurrencyCode || rate.code || rate.Code || 'Döviz';
     let code = String(rawCode).split('/')[0].split('(')[0].trim();
-
     const buy = rate.buyRate ?? rate.BuyRate ?? rate.buy ?? rate.Buy ?? 0;
     const sell = rate.sellRate ?? rate.SellRate ?? rate.sell ?? rate.Sell ?? 0;
     return { id, code, buy, sell };
   };
 
-  const selectedAccount = accounts.find(a => String(a.id || a.Id) === String(formData.accountId));
-  const selectedTargetAccount = accounts.find(a => String(a.id || a.Id) === String(formData.targetAccountId));
-  const selectedRateObj = exchangeRates.find(r => String(getRateDetails(r).id) === String(formData.currencyId));
   const selectedRate = getRateDetails(selectedRateObj);
   const amountValue = Number(formData.amount) || 0;
 
@@ -166,9 +132,61 @@ export default function ExchangeTransactions() {
     if (isTlAccount(selectedAccount)) {
       return isForeignAccount(acc);
     } else {
-      return isTlAccount(acc);
+      return isTlAccount(acc) || (isForeignAccount(acc) && getAccountCurrency(acc) === getAccountCurrency(selectedAccount));
     }
   });
+
+  const handleBuy = async (e) => {
+    e.preventDefault();
+    if (!formData.accountId || !formData.targetAccountId || !selectedRate.id || !formData.amount) {
+        setMessage({ text: 'Lütfen tüm alanları eksiksiz doldurun (Kur otomatik seçilemedi).', type: 'error' });
+        return;
+    }
+    setLoading(true);
+    setMessage({ text: '', type: '' });
+
+    const result = await buyCurrency({
+      accountId: Number(formData.accountId),
+      targetAccountId: Number(formData.targetAccountId),
+      currencyId: Number(selectedRate.id),
+      amount: Number(formData.amount)
+    });
+
+    if (result.success) {
+      setMessage({ text: result.data.message || 'Döviz alış işlemi başarıyla gerçekleştirildi!', type: 'success' });
+      setFormData({ accountId: '', targetAccountId: '', amount: '' });
+      fetchData();
+    } else {
+      setMessage({ text: result.message || 'Alış işlemi başarısız oldu.', type: 'error' });
+    }
+    setLoading(false);
+  };
+
+  const handleSell = async (e) => {
+    e.preventDefault();
+    if (!formData.accountId || !formData.targetAccountId || !selectedRate.id || !formData.amount) {
+        setMessage({ text: 'Lütfen tüm alanları eksiksiz doldurun (Kur otomatik seçilemedi).', type: 'error' });
+        return;
+    }
+    setLoading(true);
+    setMessage({ text: '', type: '' });
+
+    const result = await sellCurrency({
+      accountId: Number(formData.accountId),
+      targetAccountId: Number(formData.targetAccountId),
+      currencyId: Number(selectedRate.id),
+      amount: Number(formData.amount)
+    });
+
+    if (result.success) {
+      setMessage({ text: result.data.message || 'Döviz satış işlemi başarıyla gerçekleştirildi!', type: 'success' });
+      setFormData({ accountId: '', targetAccountId: '', amount: '' });
+      fetchData();
+    } else {
+      setMessage({ text: result.message || 'Satış işlemi başarısız oldu.', type: 'error' });
+    }
+    setLoading(false);
+  };
 
   return (
     <div style={{ padding: '2rem', width: '100%', boxSizing: 'border-box' }}>
@@ -219,9 +237,10 @@ export default function ExchangeTransactions() {
                   const accId = acc.id || acc.Id;
                   const accType = acc.accountType || acc.AccountType || acc.accountName || acc.AccountName || 'Hesap';
                   const balance = acc.balance !== undefined ? acc.balance : acc.Balance;
+                  const currency = getAccountCurrency(acc);
                   return (
                     <option key={accId} value={accId}>
-                      {owner} - {accType} (Bakiye: {balance})
+                      {owner} - {accType} ({currency}) (Bakiye: {formatNumber(balance)})
                     </option>
                   );
                 })}
@@ -230,7 +249,7 @@ export default function ExchangeTransactions() {
 
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>
-                Döviz Hesabı
+                Döviz / Hedef Hesabı
               </label>
               <select
                 name="targetAccountId"
@@ -246,33 +265,10 @@ export default function ExchangeTransactions() {
                   const accId = acc.id || acc.Id;
                   const accType = acc.accountType || acc.AccountType || acc.accountName || acc.AccountName || 'Hesap';
                   const balance = acc.balance !== undefined ? acc.balance : acc.Balance;
+                  const currency = getAccountCurrency(acc);
                   return (
                     <option key={accId} value={accId}>
-                      {owner} - {accType} (Bakiye: {balance})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#1E293B', fontSize: '0.9rem' }}>
-                Döviz Kuru 
-              </label>
-              <select
-                name="currencyId"
-                value={formData.currencyId}
-                onChange={handleChange}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none' }}
-                required
-              >
-                <option value="">-- Döviz Seçiniz --</option>
-                {exchangeRates.map((rate, index) => {
-                  const { id, code } = getRateDetails(rate);
-                  const uniqueKey = id || index;
-                  return (
-                    <option key={uniqueKey} value={id}>
-                      {code}
+                      {owner} - {accType} ({currency}) (Bakiye: {formatNumber(balance)})
                     </option>
                   );
                 })}
@@ -302,7 +298,7 @@ export default function ExchangeTransactions() {
                   }}
                   required
                 />
-                {selectedRate.code && selectedRate.code !== 'Döviz' && (
+                {activeCurrencyCode && (
                   <span style={{
                     position: 'absolute',
                     right: '10px',
@@ -317,7 +313,7 @@ export default function ExchangeTransactions() {
                     border: '1px solid #CBD5E1',
                     pointerEvents: 'none'
                   }}>
-                    {selectedRate.code}
+                    {activeCurrencyCode}
                   </span>
                 )}
               </div>
@@ -351,32 +347,32 @@ export default function ExchangeTransactions() {
           <div>
             <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Kaynak Hesap</span>
             <strong style={{ color: '#1E293B', fontSize: '0.95rem' }}>
-              {selectedAccount ? `${getOwnerName(selectedAccount)} (${selectedAccount.balance !== undefined ? selectedAccount.balance : selectedAccount.Balance})` : 'Seçilmedi'}
+              {selectedAccount ? `${getOwnerName(selectedAccount)} (${formatNumber(selectedAccount.balance !== undefined ? selectedAccount.balance : selectedAccount.Balance)})` : 'Seçilmedi'}
             </strong>
           </div>
 
           <div>
             <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Hedef Hesap</span>
             <strong style={{ color: '#1E293B', fontSize: '0.95rem' }}>
-              {selectedTargetAccount ? `${getOwnerName(selectedTargetAccount)} (${selectedTargetAccount.balance !== undefined ? selectedTargetAccount.balance : selectedTargetAccount.Balance})` : 'Seçilmedi'}
+              {selectedTargetAccount ? `${getOwnerName(selectedTargetAccount)} (${formatNumber(selectedTargetAccount.balance !== undefined ? selectedTargetAccount.balance : selectedTargetAccount.Balance)})` : 'Seçilmedi'}
             </strong>
           </div>
 
           <div>
             <span style={{ fontSize: '0.85rem', color: '#64748B', display: 'block' }}>Seçilen Döviz & Miktar</span>
             <strong style={{ color: '#1E293B', fontSize: '1rem' }}>
-              {selectedRate.code ? `${amountValue} ${selectedRate.code}` : 'Döviz seçilmedi'}
+              {activeCurrencyCode ? `${formatNumber(amountValue)} ${activeCurrencyCode}` : 'Döviz seçilmedi'}
             </strong>
           </div>
 
           <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ color: '#10B981', fontWeight: '600', fontSize: '0.85rem' }}>Alış Kuru / Tutar:</span>
-              <strong style={{ color: '#10B981', fontSize: '0.9rem' }}>{selectedRate.code ? `${selectedRate.buy} ₺ (${(amountValue * selectedRate.buy).toFixed(2)} ₺)` : '0.00 ₺'}</strong>
+              <strong style={{ color: '#10B981', fontSize: '0.9rem' }}>{activeCurrencyCode ? `${formatNumber(selectedRate.buy)} ₺ (${formatNumber(amountValue * selectedRate.buy)} ₺)` : '0,00 ₺'}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#EF4444', fontWeight: '600', fontSize: '0.85rem' }}>Satış Kuru / Tutar:</span>
-              <strong style={{ color: '#EF4444', fontSize: '0.9rem' }}>{selectedRate.code ? `${selectedRate.sell} ₺ (${(amountValue * selectedRate.sell).toFixed(2)} ₺)` : '0.00 ₺'}</strong>
+              <strong style={{ color: '#EF4444', fontSize: '0.9rem' }}>{activeCurrencyCode ? `${formatNumber(selectedRate.sell)} ₺ (${formatNumber(amountValue * selectedRate.sell)} ₺)` : '0,00 ₺'}</strong>
             </div>
           </div>
           
